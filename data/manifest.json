@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.0.0",
+  "dataVersion": "0.1.0",
+  "importedOn": "2026-09-12",
+  "source": {
+    "repository": "https://github.com/lnfernux/log-baseline",
+    "revision": "unreleased",
+    "minimumLogHorizonVersion": "0.9.0"
+  },
+  "files": {
+    "log-classifications.json": "2C46BFE762D4E514AA8A84CF9BF706870952F817ED80F70144FA14C1307B36C9",
+    "basic-plan-tables.json": "CC81C9E0DF9B6A92863DC2E775F71888A9F5AEF590E5C455B3544A97F9D3DB97",
+    "auxiliary-plan-tables.json": "8398D990ADE2E9F6696109F90AFC0F80AA835F59E1849E6D25AFA6189E281E57",
+    "implicit-consumers.json": "DADBFE13BA5BAA05DAC947C13B5C8A04667A98E0C3026ECBAF88475EFE91BD44",
+    "high-value-fields.json": "3D4E56698D3562C46C2F44628BAE07EEB807C58C5AC4AC3863CACB599285FB4E",
+    "field-frequency-stats.json": "F42D5CCC91ADF833C353825448C775718496477ACD661B898F66E410039BD9A3",
+    "custom-classifications-example.json": "6CACFA5A5EE0992E85E343CFD417A802CB011742A92856950C542F3AF77C02C9",
+    "taxonomy.json": "0D9AAF70E53447AC689CBF29B83CF54104F0948D2000409A5ADE4038881D48A1"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/lnfernux/log-baseline/schemas/implicit-consumers.schema.json",
+  "title": "Sentinel implicit consumers",
+  "type": "object",
+  "required": ["description", "ruleKinds", "platformTables"],
+  "properties": {
+    "description": { "type": "string", "minLength": 1 },
+    "ruleKinds": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "array",
+        "uniqueItems": true,
+        "items": { "type": "string", "minLength": 1 }
+      }
+    },
+    "platformTables": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/lnfernux/log-baseline/schemas/plan-tables.schema.json",
+  "title": "Azure Monitor plan-supported tables",
+  "type": "object",
+  "required": ["source", "generatedOn", "tables"],
+  "properties": {
+    "source": { "type": "string", "format": "uri" },
+    "generatedOn": { "type": "string", "format": "date" },
+    "tables": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "additionalProperties": false
+}

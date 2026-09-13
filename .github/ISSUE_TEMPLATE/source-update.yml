@@ -1,0 +1,33 @@
+name: Source update
+description: Report changed, missing, or stale public source documentation
+title: "[Source]: "
+labels: ["source-update"]
+body:
+  - type: input
+    id: source
+    attributes:
+      label: Source URL
+      placeholder: https://learn.microsoft.com/...
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: Documented change
+      description: Describe what changed and which tables or recommendations it affects.
+    validations:
+      required: true
+  - type: input
+    id: observed
+    attributes:
+      label: Date observed
+      placeholder: YYYY-MM-DD
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Data handling
+      options:
+        - label: I confirm this issue contains only public source information.
+          required: true

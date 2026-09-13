@@ -1,0 +1,66 @@
+name: Log source feedback
+description: Suggest a correction or addition for a Microsoft Sentinel log source
+title: "[Log source]: "
+labels: ["baseline-feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This baseline is generic and environment context takes precedence. Use public evidence and do not include tenant identifiers, customer data, credentials, or private telemetry.
+  - type: input
+    id: table
+    attributes:
+      label: Sentinel table
+      description: Enter the exact Log Analytics table name.
+      placeholder: SigninLogs
+    validations:
+      required: true
+  - type: input
+    id: baseline-version
+    attributes:
+      label: Baseline version
+      description: Enter the version shown by the website or manifest.
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: field
+    attributes:
+      label: Suggested change
+      options:
+        - Missing table
+        - Security value
+        - Recommended tier
+        - Recommended retention
+        - Connector or description
+        - Lifecycle or replacement
+        - Domain or log type
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed value
+      description: State the current value, proposed value, and concise rationale.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Public evidence
+      description: Link Microsoft Learn, vendor documentation, standards, or public detection content.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Environment context
+      description: Optional sanitized context explaining where the generic recommendation differs from your use case.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Data handling
+      options:
+        - label: I confirm this issue contains no credentials, tenant identifiers, customer data, or private telemetry.
+          required: true

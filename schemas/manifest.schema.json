@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/lnfernux/log-baseline/schemas/manifest.schema.json",
+  "title": "Log baseline release manifest",
+  "type": "object",
+  "required": ["schemaVersion", "dataVersion", "importedOn", "source", "files"],
+  "properties": {
+    "schemaVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "dataVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "importedOn": { "type": "string", "format": "date" },
+    "source": {
+      "type": "object",
+      "required": ["repository", "revision", "minimumLogHorizonVersion"],
+      "properties": {
+        "repository": { "type": "string", "format": "uri" },
+        "revision": { "type": "string", "minLength": 1 },
+        "minimumLogHorizonVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" }
+      },
+      "additionalProperties": false
+    },
+    "files": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "type": "string", "pattern": "^[A-F0-9]{64}$" }
+    }
+  },
+  "additionalProperties": false
+}

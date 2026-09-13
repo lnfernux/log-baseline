@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/lnfernux/log-baseline/schemas/field-frequency-stats.schema.json",
+  "title": "Sentinel field-frequency statistics",
+  "type": "object",
+  "required": ["generatedAt", "totalRulesParsed", "totalTables", "universalFields", "categoryDefaults", "perTable"],
+  "properties": {
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "totalRulesParsed": { "type": "integer", "minimum": 1 },
+    "totalTables": { "type": "integer", "minimum": 1 },
+    "universalFields": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "categoryDefaults": {
+      "type": "object",
+      "additionalProperties": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+    },
+    "perTable": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": { "type": "integer", "minimum": 1 }
+      }
+    }
+  },
+  "additionalProperties": false
+}

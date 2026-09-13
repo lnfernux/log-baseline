@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/lnfernux/log-baseline/schemas/high-value-fields.schema.json",
+  "title": "High-value fields",
+  "type": "object",
+  "minProperties": 1,
+  "additionalProperties": {
+    "type": "object",
+    "required": ["description", "highValueFields", "splitHints"],
+    "properties": {
+      "description": { "type": "string", "minLength": 1 },
+      "highValueFields": {
+        "type": "array",
+        "minItems": 1,
+        "uniqueItems": true,
+        "items": { "type": "string", "minLength": 1 }
+      },
+      "splitHints": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["description", "kql"],
+          "properties": {
+            "description": { "type": "string", "minLength": 1 },
+            "kql": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "additionalProperties": false
+  }
+}

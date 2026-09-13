@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/lnfernux/log-baseline/schemas/log-classifications.schema.json",
+  "title": "Log baseline classifications",
+  "type": "array",
+  "minItems": 1,
+  "items": {
+    "type": "object",
+    "required": ["tableName", "connector", "classification", "category", "description", "keywords", "mitreSources", "recommendedTier", "isFree", "recommendedRetentionDays"],
+    "properties": {
+      "tableName": { "type": "string", "minLength": 1 },
+      "connector": { "type": "string", "minLength": 1 },
+      "classification": { "enum": ["primary", "secondary"] },
+      "category": { "type": "string", "minLength": 1 },
+      "description": { "type": "string", "minLength": 1 },
+      "keywords": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+      "mitreSources": { "type": "array", "items": { "type": "string" } },
+      "recommendedTier": { "enum": ["analytics", "datalake"] },
+      "isFree": { "type": "boolean" },
+      "recommendedRetentionDays": { "enum": [90, 180, 365] },
+      "status": { "enum": ["deprecated", "legacy"] },
+      "replacedBy": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+      "xdrStreamable": { "type": "boolean" },
+      "platform": { "type": "boolean" },
+      "domainId": { "type": "string", "minLength": 1 },
+      "logTypeId": { "type": "string", "minLength": 1 },
+      "sourceIds": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+    },
+    "additionalProperties": false,
+    "dependentRequired": {
+      "status": ["replacedBy"],
+      "replacedBy": ["status"]
+    }
+  }
+}
