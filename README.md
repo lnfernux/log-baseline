@@ -1,8 +1,11 @@
 # Microsoft Sentinel Log Baseline
 
-This repository contains a generic starting baseline for Microsoft Sentinel log sources. It classifies tables by security value and recommends an ingestion tier and retention period.
+This repository contains a generic starting baseline for Microsoft Sentinel log sources used by [Log Horizon - Microsoft Sentinel SIEM Log Source Analyzer](https://github.com/lnfernux/log-horizon). 
+It's a set of data with tables classified by security value and recommends an ingestion tier and retention period.
 
-**Context always takes precedence over this baseline.** A table marked as secondary can still be essential in a specific environment because of deployed detections, regulatory requirements, incident history, or business processes. Treat these recommendations as a starting point or review inputs, one-size-fits-all best practice (it's not).
+**Context always takes precedence over this baseline -**regardless of what this repository says. 
+
+As an example, a table marked as secondary in this baseline can still be essential in a specific environment because of deployed detections, regulatory requirements, incident history, or business processes. Treat these recommendations as a starting point or review inputs, one-size-fits-all best practice (it's not). It's a baseline, not a complete security foundation to lean on alone.
 
 ## Data
 
