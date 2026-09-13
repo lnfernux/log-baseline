@@ -8,7 +8,7 @@ The project uses semantic versioning for the data contract:
 - Minor releases add backward-compatible fields, tables, sources, or taxonomy entries.
 - Major releases change or remove existing contract fields.
 
-## Unreleased
+## 0.1.0 - 2026-09-13
 
 The manifest reserves data version `0.1.0` for the first release. Release artifacts replace the working `unreleased` revision with the full source commit SHA.
 
