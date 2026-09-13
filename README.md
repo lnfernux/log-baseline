@@ -22,18 +22,21 @@ The initial data was migrated without semantic changes from [Log Horizon](https:
 
 ## Sources
 
-The baseline methodology draws on:
+The baseline is created using the following sources:
 
-- [ACSC best practices for event logging and threat detection](https://www.cyber.gov.au/sites/default/files/2024-08/best-practices-for-event-logging-and-threat-detection.pdf)
-- [ACSC priority logs for SIEM ingestion](https://www.cyber.gov.au/business-government/detecting-responding-to-threats/event-logging/implementing-siem-soar-platforms/priority-logs-for-siem-ingestion-practitioner-guidance)
-- [CISA guidance for implementing M-21-31](https://www.cisa.gov/sites/default/files/2023-02/TLP%20CLEAR%20-%20Guidance%20for%20Implementing%20M-21-31_Improving%20the%20Federal%20Governments%20Investigative%20and%20Remediation%20Capabilities_.pdf)
-- [CISA Microsoft Expanded Cloud Logs Implementation Playbook](https://www.cisa.gov/sites/default/files/2025-01/microsoft-expanded-cloud-logs-implementation-playbook-508c.pdf)
 - [Microsoft Sentinel data connectors reference](https://learn.microsoft.com/azure/sentinel/data-connectors-reference)
 - [Microsoft Sentinel tables and connectors reference](https://learn.microsoft.com/azure/sentinel/sentinel-tables-connectors-reference)
 - [Azure Monitor table feature matrix](https://learn.microsoft.com/azure/azure-monitor/reference/tables-features)
 - [Microsoft Sentinel billing](https://learn.microsoft.com/azure/sentinel/billing)
 - [Microsoft Sentinel data tier management](https://learn.microsoft.com/azure/sentinel/manage-data-overview)
 - [Azure/Azure-Sentinel](https://github.com/Azure/Azure-Sentinel)
+
+For the classification, the following sources served as inspiration:
+
+- [ACSC best practices for event logging and threat detection](https://www.cyber.gov.au/sites/default/files/2024-08/best-practices-for-event-logging-and-threat-detection.pdf)
+- [ACSC priority logs for SIEM ingestion](https://www.cyber.gov.au/business-government/detecting-responding-to-threats/event-logging/implementing-siem-soar-platforms/priority-logs-for-siem-ingestion-practitioner-guidance)
+- [CISA guidance for implementing M-21-31](https://www.cisa.gov/sites/default/files/2023-02/TLP%20CLEAR%20-%20Guidance%20for%20Implementing%20M-21-31_Improving%20the%20Federal%20Governments%20Investigative%20and%20Remediation%20Capabilities_.pdf)
+- [CISA Microsoft Expanded Cloud Logs Implementation Playbook](https://www.cisa.gov/sites/default/files/2025-01/microsoft-expanded-cloud-logs-implementation-playbook-508c.pdf)
 - [MITRE ATT&CK data sources](https://attack.mitre.org/datasources/)
 - [NIST SP 800-92](https://csrc.nist.gov/pubs/sp/800/92/final)
 - [Google Cloud Audit Logs](https://docs.cloud.google.com/logging/docs/audit)
