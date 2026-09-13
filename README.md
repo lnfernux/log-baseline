@@ -3,7 +3,7 @@
 This repository contains a generic starting baseline for Microsoft Sentinel log sources used by [Log Horizon - Microsoft Sentinel SIEM Log Source Analyzer](https://github.com/lnfernux/log-horizon). 
 It's a set of data with tables classified by security value and recommends an ingestion tier and retention period.
 
-**Context always takes precedence over this baseline -**regardless of what this repository says. 
+**Context always takes precedence over this baseline** - regardless of what this repository says. 
 
 As an example, a table marked as secondary in this baseline can still be essential in a specific environment because of deployed detections, regulatory requirements, incident history, or business processes. Treat these recommendations as a starting point or review inputs, one-size-fits-all best practice (it's not). It's a baseline, not a complete security foundation to lean on alone.
 
@@ -11,19 +11,47 @@ As an example, a table marked as secondary in this baseline can still be essenti
 
 The canonical files are stored in [`data/`](data/):
 
-- `log-classifications.json` - Sentinel table classifications and recommendations.
-- `basic-plan-tables.json` - built-in tables supporting the Basic plan.
-- `auxiliary-plan-tables.json` - built-in tables supporting the Auxiliary plan.
-- `implicit-consumers.json` - non-KQL Sentinel consumers and platform tables.
-- `high-value-fields.json` - field recommendations and split hints.
-- `field-frequency-stats.json` - derived field usage from public Sentinel rules.
-- `custom-classifications-example.json` - Log Horizon-compatible override examples.
-- `taxonomy.json` - the generic Domain > Log type mapping used by the explorer.
-- `sources.json` - versioned provenance records referenced by classifications and generated datasets.
+|File|Description|
+|--|--|
+|`log-classifications.json` | Sentinel table classifications and recommendations.
+|`basic-plan-tables.json` | built-in tables supporting the Basic plan.
+|`auxiliary-plan-tables.json` | built-in tables supporting the Auxiliary plan.
+|`implicit-consumers.json` | non-KQL Sentinel consumers and platform tables.
+|`high-value-fields.json` | field recommendations and split hints.
+|`field-frequency-stats.json` | derived field usage from public Sentinel rules.
+|`custom-classifications-example.json` | Log Horizon-compatible override examples.
+|`taxonomy.json` | the generic Domain > Log type mapping used by the explorer.
+|`sources.json` | versioned provenance records referenced by classifications and generated datasets.
 
 The initial data was migrated without semantic changes from [Log Horizon](https://github.com/lnfernux/log-horizon). Log Horizon will consume approved releases as vendored module data, keeping PowerShell Gallery installations self-contained and usable without a network connection.
 
-## Sources
+### Data accuracy
+
+**This is important, please read.**
+
+This repository is created and maintained with assistance of AI, which can make mistakes. Let me explain how this was done:
+
+1. Mapped out all current log sources from the data sources below (data connectors reference, the Azure-Sentinel repo and a live tenant).
+2. Author (that's me, hi) mapped out a set of around 50 connectors in the JSON-schema manually and provided context as to why I chose that. In two cases I classified wrongly on purpose, this will make sense later.
+3. AI (an specialized agent) with access to Microsoft Learn MCP and Defender MCP along with web-search was provided with the task of:
+   * Using the classification sources to validate my current set of manual classifications and find any that didn't make sense.
+   * After validating and generating a set of rules based on my input, classification sources and the run over the pre-classified data, it ran on the rest of the data.
+4. Author (hi, that's me again) validated some of the baseline against live tenants and made some corrections.
+
+Of course, there are a myriad of ways this can go wrong:
+
+1. AI can be wrong, will be wrong. So a human needs to be in the loop.
+2. This is a generic approach - the only context is that the data is security relevant and costs money for volume. So it can never be as good as a baseline created with context in mind.
+3. The Microsoft Learn docs can a) either document tables in preview which are not yet available or b) is being deprecated/has been deprecated and no longer works.
+4. Same goes for the Azure-Sentinel repo, the detections used for table mappings could be new, outdated, this also goes for the fields used in the frequency stats.
+5. Live tenants could have custom solutions/tables.
+
+So as you can see, what this is data that has been classified by a non-deterministic process with some oversight by a complete moron. **Use at your own peril.**
+From joke to reality, the web counterpart for this repo, [baseline.infernux.no](https://baseline.infernux.no), will at one point have an option to sign in with your Github account and vote on tables.
+
+### Data sources
+
+#### Table sources
 
 The baseline is created using the following sources:
 
@@ -33,6 +61,8 @@ The baseline is created using the following sources:
 - [Microsoft Sentinel billing](https://learn.microsoft.com/azure/sentinel/billing)
 - [Microsoft Sentinel data tier management](https://learn.microsoft.com/azure/sentinel/manage-data-overview)
 - [Azure/Azure-Sentinel](https://github.com/Azure/Azure-Sentinel)
+
+#### Classification sources
 
 For the classification, the following sources served as inspiration:
 
