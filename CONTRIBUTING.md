@@ -23,15 +23,26 @@ For a classification change, include:
 
 Plan support and field-frequency statistics are regenerated from their upstream sources.
 
+Use the repository adapters rather than editing generated files directly:
+
+```powershell
+pwsh ./scripts/Update-PlanTables.ps1 -InputPath <saved-learn-markdown> -ObservedOn <date>
+pwsh ./scripts/Import-FieldAnalysis.ps1 -FieldFrequencyPath <file> -HighValueFieldsPath <file> -AzureSentinelRevision <sha> -ObservedOn <date>
+pwsh ./scripts/Import-LogHorizonSnapshot.ps1 -SourcePath <checkout> -Revision <sha>
+```
+
+Review the resulting data, provenance changes, and manifest checksums together.
+
 ## Validation
 
 Run from the repository root:
 
 ```powershell
 pwsh ./scripts/Test-Baseline.ps1
+pwsh ./tests/Test-Baseline.Tests.ps1
 ```
 
-The command should ideally pass before opening a pull request, but there might be cases where it does not.
+Both commands must pass before opening a pull request. If a proposed contract change requires a failing fixture, update the validator and tests in the same pull request.
 
 ## Pull requests
 
@@ -41,3 +52,7 @@ The command should ideally pass before opening a pull request, but there might b
 4. Complete the pull request template and link the relevant issue.
 
 Every data change requires human review and no pull requests are merged automatically.
+
+## Contribution licensing
+
+By submitting a contribution, you confirm that you have the right to provide it and agree that it is licensed under the repository license applicable to the changed file. Data and documentation contributions use CC BY 4.0. Script and schema contributions use the MIT License.

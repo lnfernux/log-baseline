@@ -6,12 +6,21 @@
   "minItems": 1,
   "items": {
     "type": "object",
-    "required": ["tableName", "connector", "classification", "category", "description", "keywords", "mitreSources", "recommendedTier", "isFree", "recommendedRetentionDays"],
+    "required": ["tableName", "connector", "classification", "category", "description", "keywords", "mitreSources", "recommendedTier", "isFree", "recommendedRetentionDays", "sourceIds"],
     "properties": {
       "tableName": { "type": "string", "minLength": 1 },
       "connector": { "type": "string", "minLength": 1 },
       "classification": { "enum": ["primary", "secondary"] },
-      "category": { "type": "string", "minLength": 1 },
+      "category": {
+        "enum": [
+          "Application Logs", "Cloud Control Plane", "Cloud Security", "Configuration Management",
+          "Container & Kubernetes", "Data Platform", "Data Security", "Email Security",
+          "Endpoint Detection", "Endpoint Telemetry", "Identity & Access", "Infrastructure Diagnostics",
+          "IoT/OT Security", "Network Flow", "Network Security", "Platform Health",
+          "Posture Management", "SAP Security", "Security Alerts", "Storage Access",
+          "Threat Intelligence", "Vulnerability Management"
+        ]
+      },
       "description": { "type": "string", "minLength": 1 },
       "keywords": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
       "mitreSources": { "type": "array", "items": { "type": "string" } },
@@ -24,7 +33,7 @@
       "platform": { "type": "boolean" },
       "domainId": { "type": "string", "minLength": 1 },
       "logTypeId": { "type": "string", "minLength": 1 },
-      "sourceIds": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+      "sourceIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z0-9-]+$" } }
     },
     "additionalProperties": false,
     "dependentRequired": {

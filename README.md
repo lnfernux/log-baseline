@@ -2,7 +2,7 @@
 
 This repository contains a generic starting baseline for Microsoft Sentinel log sources. It classifies tables by security value and recommends an ingestion tier and retention period.
 
-Context takes precedence over this baseline. A table marked as secondary can still be essential in a specific environment because of deployed detections, regulatory requirements, incident history, or business processes. Treat these recommendations as review inputs, not tenant-specific decisions.
+**Context always takes precedence over this baseline.** A table marked as secondary can still be essential in a specific environment because of deployed detections, regulatory requirements, incident history, or business processes. Treat these recommendations as a starting point or review inputs, one-size-fits-all best practice (it's not).
 
 ## Data
 
@@ -16,6 +16,7 @@ The canonical files are stored in [`data/`](data/):
 - `field-frequency-stats.json` - derived field usage from public Sentinel rules.
 - `custom-classifications-example.json` - Log Horizon-compatible override examples.
 - `taxonomy.json` - the generic Domain > Log type mapping used by the explorer.
+- `sources.json` - versioned provenance records referenced by classifications and generated datasets.
 
 The initial data was migrated without semantic changes from [Log Horizon](https://github.com/lnfernux/log-horizon). Log Horizon will consume approved releases as vendored module data, keeping PowerShell Gallery installations self-contained and usable without a network connection.
 
@@ -37,7 +38,41 @@ The baseline methodology draws on:
 - [NIST SP 800-92](https://csrc.nist.gov/pubs/sp/800/92/final)
 - [Google Cloud Audit Logs](https://docs.cloud.google.com/logging/docs/audit)
 
-See the [Log Horizon baseline methodology](https://github.com/lnfernux/log-horizon#how-the-classifications-were-built) for the full original description while the expanded methodology is migrated here.
+See the [Log Horizon baseline methodology](https://github.com/lnfernux/log-horizon#how-the-classifications-were-built) for the full original description while the expanded methodology is migrated here. Each classification points to the exact Log Horizon source revision through `sourceIds`. These references establish provenance for the inherited recommendation. They do not claim that every recommendation is independently proven by every methodology source above.
+
+The plan-support files cover the complete Microsoft table feature matrix, including tables that do not yet have a classification entry. Field-frequency statistics likewise retain tables found in the public rule corpus even when the baseline does not classify them.
+
+## Updating generated data
+
+Update commands use local, reviewable inputs. They do not download mutable sources during validation.
+
+Import a checked-out Log Horizon snapshot:
+
+```powershell
+pwsh ./scripts/Import-LogHorizonSnapshot.ps1 `
+	-SourcePath ../log-horizon `
+	-Revision 49188a945b7587c0d613e45381d19d54f77a04af
+```
+
+Save the [Microsoft Learn table feature matrix](https://learn.microsoft.com/azure/azure-monitor/reference/tables-features) as Markdown, then regenerate both plan lists:
+
+```powershell
+pwsh ./scripts/Update-PlanTables.ps1 `
+	-InputPath ./tmp/tables-features.md `
+	-ObservedOn 2026-09-13
+```
+
+Import field-analysis output generated from a specific Azure-Sentinel checkout:
+
+```powershell
+pwsh ./scripts/Import-FieldAnalysis.ps1 `
+	-FieldFrequencyPath ./tmp/field-frequency-stats.json `
+	-HighValueFieldsPath ./tmp/high-value-fields.json `
+	-AzureSentinelRevision <40-character-commit-sha> `
+	-ObservedOn 2026-09-13
+```
+
+The initial field-analysis snapshot predates revision capture. Its provenance record states that limitation explicitly. Future imports require the exact Azure-Sentinel commit.
 
 ## Validation
 
@@ -45,9 +80,20 @@ Run from the repository root:
 
 ```powershell
 pwsh ./scripts/Test-Baseline.ps1
+pwsh ./tests/Test-Baseline.Tests.ps1
 ```
 
 Validation covers JSON parsing and schemas, required values, unique table names, lifecycle references, plan lists, cross-file relationships, and manifest checksums.
+
+## Release artifacts
+
+The working manifest uses `unreleased` until a release commit exists. Build an artifact from that commit by passing its full SHA:
+
+```powershell
+pwsh ./scripts/New-ReleaseArtifact.ps1 -SourceRevision <40-character-commit-sha>
+```
+
+The command requires a committed Git `HEAD`, verifies the supplied revision, refuses uncommitted release inputs, validates the staged payload, embeds immutable revision URLs, and creates a deterministic ZIP plus SHA256 sidecar under the ignored `artifacts/` directory. Release files are generated locally and are not committed.
 
 ## Licensing
 

@@ -1,10 +1,12 @@
 [CmdletBinding()]
-param()
+param(
+    [string]$RootPath = (Split-Path -Parent $PSScriptRoot)
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$root = Split-Path -Parent $PSScriptRoot
+$root = [System.IO.Path]::GetFullPath($RootPath)
 $dataPath = Join-Path $root 'data'
 $schemaPath = Join-Path $root 'schemas'
 $failures = [System.Collections.Generic.List[string]]::new()
@@ -68,6 +70,7 @@ $schemaMappings = @{
     'field-frequency-stats.json' = 'field-frequency-stats.schema.json'
     'custom-classifications-example.json' = 'log-classifications.schema.json'
     'taxonomy.json' = 'taxonomy.schema.json'
+    'sources.json' = 'sources.schema.json'
     'manifest.json' = 'manifest.schema.json'
 }
 
@@ -75,14 +78,48 @@ foreach ($mapping in $schemaMappings.GetEnumerator()) {
     Test-Schema -DataFile $mapping.Key -SchemaFile $mapping.Value
 }
 
+$manifestFileNames = @()
 $manifest = Read-BaselineJson (Join-Path $dataPath 'manifest.json')
 if ($null -ne $manifest) {
+    $requiredReleaseFiles = @(
+        'auxiliary-plan-tables.json',
+        'basic-plan-tables.json',
+        'custom-classifications-example.json',
+        'field-frequency-stats.json',
+        'high-value-fields.json',
+        'implicit-consumers.json',
+        'log-classifications.json',
+        'sources.json',
+        'taxonomy.json'
+    )
+    $manifestFileNames = @($manifest.files.PSObject.Properties.Name | Sort-Object)
+    Assert-Baseline (@(Compare-Object $requiredReleaseFiles $manifestFileNames).Count -eq 0) 'Manifest must list exactly the required release data files'
+    $actualDataFiles = @(Get-ChildItem -LiteralPath $dataPath -File -Filter '*.json' | ForEach-Object Name | Where-Object { $_ -ne 'manifest.json' } | Sort-Object)
+    Assert-Baseline (@(Compare-Object $manifestFileNames $actualDataFiles).Count -eq 0) 'Every data JSON file must be listed in the manifest'
+
     foreach ($fileProperty in $manifest.files.PSObject.Properties) {
+        $isSafeFileName = $fileProperty.Name -match '^[A-Za-z0-9][A-Za-z0-9.-]*\.json$' -and
+            [System.IO.Path]::GetFileName($fileProperty.Name) -eq $fileProperty.Name
+        Assert-Baseline $isSafeFileName "Manifest contains an unsafe file name: $($fileProperty.Name)"
+        if (-not $isSafeFileName) { continue }
+
         $file = Join-Path $dataPath $fileProperty.Name
         Assert-Baseline (Test-Path -LiteralPath $file -PathType Leaf) "Manifest file is missing: $($fileProperty.Name)"
         if (Test-Path -LiteralPath $file -PathType Leaf) {
             $actualHash = (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash
             Assert-Baseline ($actualHash -eq $fileProperty.Value) "Checksum mismatch: $($fileProperty.Name)"
+        }
+    }
+}
+
+$sourcesDocument = Read-BaselineJson (Join-Path $dataPath 'sources.json')
+$sourceIds = @()
+if ($null -ne $sourcesDocument) {
+    $sourceIds = @($sourcesDocument.sources.id)
+    Assert-Baseline (@($sourceIds | Sort-Object -Unique).Count -eq $sourceIds.Count) 'Source IDs must be unique'
+    foreach ($source in $sourcesDocument.sources) {
+        foreach ($appliesTo in @($source.appliesTo)) {
+            Assert-Baseline ($appliesTo -in $manifestFileNames) "$($source.id): source references an unknown release file $appliesTo"
         }
     }
 }
@@ -123,6 +160,9 @@ foreach ($entry in $classifications) {
     Assert-Baseline ($entry.category -in $allowedCategories) "$($entry.tableName): invalid category"
     Assert-Baseline ($entry.recommendedTier -in @('analytics', 'datalake')) "$($entry.tableName): invalid recommended tier"
     Assert-Baseline ($entry.recommendedRetentionDays -in @(90, 180, 365)) "$($entry.tableName): invalid retention"
+    foreach ($sourceId in @($entry.sourceIds)) {
+        Assert-Baseline ($sourceId -in $sourceIds) "$($entry.tableName): unknown source ID $sourceId"
+    }
 
     $hasStatus = $entry.PSObject.Properties.Name -contains 'status'
     $hasReplacement = $entry.PSObject.Properties.Name -contains 'replacedBy'
@@ -132,6 +172,14 @@ foreach ($entry in $classifications) {
         foreach ($replacement in @($entry.replacedBy)) {
             Assert-Baseline ($replacement -in $tableNames) "$($entry.tableName): missing replacement table $replacement"
         }
+    }
+}
+
+$customClassifications = @(Read-BaselineJson (Join-Path $dataPath 'custom-classifications-example.json'))
+foreach ($entry in $customClassifications) {
+    Assert-Baseline ($entry.category -in $allowedCategories) "$($entry.tableName): invalid custom example category"
+    foreach ($sourceId in @($entry.sourceIds)) {
+        Assert-Baseline ($sourceId -in $sourceIds) "$($entry.tableName): unknown custom example source ID $sourceId"
     }
 }
 

@@ -20,7 +20,18 @@
     },
     "files": {
       "type": "object",
-      "minProperties": 1,
+      "required": [
+        "log-classifications.json",
+        "basic-plan-tables.json",
+        "auxiliary-plan-tables.json",
+        "implicit-consumers.json",
+        "high-value-fields.json",
+        "field-frequency-stats.json",
+        "custom-classifications-example.json",
+        "taxonomy.json",
+        "sources.json"
+      ],
+      "propertyNames": { "pattern": "^[A-Za-z0-9][A-Za-z0-9.-]*\\.json$" },
       "additionalProperties": { "type": "string", "pattern": "^[A-F0-9]{64}$" }
     }
   },

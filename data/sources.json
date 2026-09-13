@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "1.0.0",
+  "sources": [
+    {
+      "id": "log-horizon-classifications",
+      "title": "Log Horizon classification baseline",
+      "url": "https://github.com/lnfernux/log-horizon/commit/17f20e95d5bd3558993794f2d47cd9a23ff6cc2d",
+      "revision": "17f20e95d5bd3558993794f2d47cd9a23ff6cc2d",
+      "observedOn": "2026-09-12",
+      "appliesTo": [
+        "log-classifications.json"
+      ],
+      "scope": "Initial per-table classifications, recommendations, lifecycle state, and descriptive metadata migrated without semantic changes."
+    },
+    {
+      "id": "microsoft-learn-table-features",
+      "title": "Azure Monitor Logs table feature support",
+      "url": "https://learn.microsoft.com/azure/azure-monitor/reference/tables-features",
+      "revision": "observed-2026-09-06",
+      "observedOn": "2026-09-06",
+      "appliesTo": [
+        "auxiliary-plan-tables.json",
+        "basic-plan-tables.json"
+      ],
+      "scope": "Built-in table support for the Basic and Auxiliary plans."
+    },
+    {
+      "id": "azure-sentinel-rule-corpus",
+      "title": "Azure Sentinel public rule corpus field analysis",
+      "url": "https://github.com/Azure/Azure-Sentinel",
+      "revision": "imported-from-log-horizon-ccaf2573618d546ff64d282aa59b0e94f2e2e440",
+      "observedOn": "2026-04-12",
+      "appliesTo": [
+        "field-frequency-stats.json",
+        "high-value-fields.json"
+      ],
+      "scope": "Field references derived from public analytics rules, hunting queries, and solution content. The original upstream Azure-Sentinel commit was not recorded by the source dataset."
+    },
+    {
+      "id": "log-horizon-implicit-consumers",
+      "title": "Log Horizon implicit consumer model",
+      "url": "https://github.com/lnfernux/log-horizon/commit/8fde29dd1a225867d70d4e85b95ec446b409076b",
+      "revision": "8fde29dd1a225867d70d4e85b95ec446b409076b",
+      "observedOn": "2026-09-12",
+      "appliesTo": [
+        "implicit-consumers.json"
+      ],
+      "scope": "Sentinel consumers without directly extractable KQL and platform-owned tables."
+    },
+    {
+      "id": "log-horizon-custom-example",
+      "title": "Log Horizon custom classification example",
+      "url": "https://github.com/lnfernux/log-horizon/commit/8dbd4c9cefd3d577aace8820cf909472c3261dee",
+      "revision": "8dbd4c9cefd3d577aace8820cf909472c3261dee",
+      "observedOn": "2026-09-12",
+      "appliesTo": [
+        "custom-classifications-example.json"
+      ],
+      "scope": "Compatibility examples for local Log Horizon overrides."
+    },
+    {
+      "id": "log-baseline-taxonomy",
+      "title": "Log Baseline generic taxonomy",
+      "url": "https://github.com/lnfernux/log-baseline/blob/main/data/taxonomy.json",
+      "revision": "0.1.0-unreleased",
+      "observedOn": "2026-09-12",
+      "appliesTo": [
+        "taxonomy.json"
+      ],
+      "scope": "Repository-maintained mapping from classification categories to generic security domains and log types."
+    }
+  ]
+}
