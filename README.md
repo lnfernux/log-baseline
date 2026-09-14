@@ -1,35 +1,53 @@
 # Microsoft Sentinel Log Baseline
 
-This repository contains a generic starting baseline for Microsoft Sentinel log sources used by [Log Horizon - Microsoft Sentinel SIEM Log Source Analyzer](https://github.com/lnfernux/log-horizon). 
-It's a set of data with tables classified by security value and recommends an ingestion tier and retention period.
+[![Validate baseline](https://github.com/lnfernux/log-baseline/actions/workflows/validate.yml/badge.svg)](https://github.com/lnfernux/log-baseline/actions/workflows/validate.yml)
+[![Data version](https://img.shields.io/badge/data-0.1.0-00cc00)](CHANGELOG.md)
+[![Schema version](https://img.shields.io/badge/schema-1.0.0-475569)](data/manifest.json)
+[![License](https://img.shields.io/badge/license-CC%20BY%204.0%20%2B%20MIT-475569)](LICENSE.md)
 
-**Context always takes precedence over this baseline** - regardless of what this repository says. 
+Generic, versioned recommendations for Microsoft Sentinel log sources. The dataset classifies tables by security value and recommends ingestion tiers and retention periods for [Log Horizon](https://github.com/lnfernux/log-horizon) and the [Log Baseline explorer](https://baseline.infernux.no).
 
-As an example, a table marked as secondary in this baseline can still be essential in a specific environment because of deployed detections, regulatory requirements, incident history, or business processes. Treat these recommendations as a starting point or review inputs, one-size-fits-all best practice (it's not). It's a baseline, not a complete security foundation to lean on alone.
+> [!IMPORTANT]
+> **Context always takes precedence over this baseline.** A table marked as secondary can still be essential because of deployed detections, regulatory requirements, incident history, or business processes. Treat these recommendations as review inputs, not as a one-size-fits-all security standard.
+
+| Key fact | Current state |
+| --- | --- |
+| Classified tables | **481** Microsoft Sentinel tables |
+| Data contract | **0.1.0** using schema **1.0.0** |
+| Log Horizon compatibility | Requires **0.9.0** or later |
+| Evidence | Public documentation and repositories, tracked in [`sources.json`](data/sources.json) |
+| Validation | JSON Schema, relationships, lifecycle references, and SHA256 checksums on Windows and Linux |
+| Release model | Immutable, deterministic ZIP with a SHA256 sidecar |
+
+**[Explore the baseline](https://baseline.infernux.no)** · **[Review the data](data/log-classifications.json)** · **[Suggest a correction](https://github.com/lnfernux/log-baseline/issues/new?template=log-source-feedback.yml)** · **[Contribute](CONTRIBUTING.md)**
+
+> [!NOTE]
+> This repository is the canonical data source. Log Horizon vendors approved release snapshots so installed PowerShell modules remain self-contained and work without network access.
 
 ## Data
 
 The canonical files are stored in [`data/`](data/):
 
-|File|Description|
-|--|--|
-|`log-classifications.json` | Sentinel table classifications and recommendations.
-|`basic-plan-tables.json` | built-in tables supporting the Basic plan.
-|`auxiliary-plan-tables.json` | built-in tables supporting the Auxiliary plan.
-|`implicit-consumers.json` | non-KQL Sentinel consumers and platform tables.
-|`high-value-fields.json` | field recommendations and split hints.
-|`field-frequency-stats.json` | derived field usage from public Sentinel rules.
-|`custom-classifications-example.json` | Log Horizon-compatible override examples.
-|`taxonomy.json` | the generic Domain > Log type mapping used by the explorer.
-|`sources.json` | versioned provenance records referenced by classifications and generated datasets.
+| File | Description |
+| --- | --- |
+| `log-classifications.json` | Sentinel table classifications and recommendations. |
+| `basic-plan-tables.json` | Built-in tables supporting the Basic plan. |
+| `auxiliary-plan-tables.json` | Built-in tables supporting the Auxiliary plan. |
+| `implicit-consumers.json` | Non-KQL Sentinel consumers and platform tables. |
+| `high-value-fields.json` | Field recommendations and split hints. |
+| `field-frequency-stats.json` | Derived field usage from public Sentinel rules. |
+| `custom-classifications-example.json` | Log Horizon-compatible override examples. |
+| `taxonomy.json` | The generic Domain > Log type mapping used by the explorer. |
+| `sources.json` | Versioned provenance records referenced by classifications and generated datasets. |
 
-The initial data was migrated without semantic changes from [Log Horizon](https://github.com/lnfernux/log-horizon). Log Horizon will consume approved releases as vendored module data, keeping PowerShell Gallery installations self-contained and usable without a network connection.
+The initial data was migrated without semantic changes from [Log Horizon](https://github.com/lnfernux/log-horizon).
 
 ### Data accuracy
 
-**This is important, please read.**
+> [!WARNING]
+> The dataset uses AI-assisted research and classification with human review. AI output, public documentation, upstream detection content, and tenant observations can all be incomplete or outdated. Validate recommendations against your environment before using them.
 
-This repository is created and maintained with assistance of AI, which can make mistakes. Let me explain how this was done:
+**The repository was created and is maintained with AI assistance:**
 
 1. Mapped out all current log sources from the data sources below (data connectors reference, the Azure-Sentinel repo and a live tenant).
 2. Author (that's me, hi) mapped out a set of around 50 connectors in the JSON-schema manually and provided context as to why I chose that. In two cases I classified wrongly on purpose, this will make sense later.
@@ -38,7 +56,8 @@ This repository is created and maintained with assistance of AI, which can make 
    * After validating and generating a set of rules based on my input, classification sources and the run over the pre-classified data, it ran on the rest of the data.
 4. Author (hi, that's me again) validated some of the baseline against live tenants and made some corrections.
 
-Of course, there are a myriad of ways this can go wrong:
+> [!WARNING]
+> This means a lot of thing CAN possibly go wrong here.
 
 1. AI can be wrong, will be wrong. So a human needs to be in the loop.
 2. This is a generic approach - the only context is that the data is security relevant and costs money for volume. So it can never be as good as a baseline created with context in mind.
@@ -46,8 +65,9 @@ Of course, there are a myriad of ways this can go wrong:
 4. Same goes for the Azure-Sentinel repo, the detections used for table mappings could be new, outdated, this also goes for the fields used in the frequency stats.
 5. Live tenants could have custom solutions/tables.
 
-So as you can see, what this is data that has been classified by a non-deterministic process with some oversight by a complete moron. **Use at your own peril.**
-From joke to reality, the web counterpart for this repo, [baseline.infernux.no](https://baseline.infernux.no), will at one point have an option to sign in with your Github account and vote on tables.
+> [!NOTE]
+> So as you can see, what this is data that has been classified by a non-deterministic process with some oversight by a complete moron. **Use at your own peril.**
+> From joke to reality, the web counterpart for this repo, [baseline.infernux.no](https://baseline.infernux.no), will at one point have an option to sign in with your Github account and vote on tables.
 
 ### Data sources
 
@@ -111,6 +131,9 @@ pwsh ./scripts/Import-FieldAnalysis.ps1 `
 The initial field-analysis snapshot predates revision capture. Its provenance record states that limitation explicitly. Future imports require the exact Azure-Sentinel commit.
 
 ## Validation
+
+> [!TIP]
+> Run both commands before proposing a change. CI executes the same checks on Windows and Linux.
 
 Run from the repository root:
 
