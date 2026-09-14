@@ -5,21 +5,10 @@
 [![Schema version](https://img.shields.io/badge/schema-1.0.0-475569)](data/manifest.json)
 [![License](https://img.shields.io/badge/license-CC%20BY%204.0%20%2B%20MIT-475569)](LICENSE.md)
 
-Generic, versioned recommendations for Microsoft Sentinel log sources. The dataset classifies tables by security value and recommends ingestion tiers and retention periods for [Log Horizon](https://github.com/lnfernux/log-horizon) and the [Log Baseline explorer](https://baseline.infernux.no).
-
 > [!IMPORTANT]
 > **Context always takes precedence over this baseline.** A table marked as secondary can still be essential because of deployed detections, regulatory requirements, incident history, or business processes. Treat these recommendations as review inputs, not as a one-size-fits-all security standard.
 
-| Key fact | Current state |
-| --- | --- |
-| Classified tables | **481** Microsoft Sentinel tables |
-| Data contract | **0.1.0** using schema **1.0.0** |
-| Log Horizon compatibility | Requires **0.9.0** or later |
-| Evidence | Public documentation and repositories, tracked in [`sources.json`](data/sources.json) |
-| Validation | JSON Schema, relationships, lifecycle references, and SHA256 checksums on Windows and Linux |
-| Release model | Immutable, deterministic ZIP with a SHA256 sidecar |
-
-**[Explore the baseline](https://baseline.infernux.no)** · **[Review the data](data/log-classifications.json)** · **[Suggest a correction](https://github.com/lnfernux/log-baseline/issues/new?template=log-source-feedback.yml)** · **[Contribute](CONTRIBUTING.md)**
+Generic, versioned recommendations for Microsoft Sentinel log sources. The dataset classifies tables by security value and recommends ingestion tiers and retention periods for [Log Horizon](https://github.com/lnfernux/log-horizon) and the [Log Baseline explorer](https://baseline.infernux.no).
 
 > [!NOTE]
 > This repository is the canonical data source. Log Horizon vendors approved release snapshots so installed PowerShell modules remain self-contained and work without network access.
