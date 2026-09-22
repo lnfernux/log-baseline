@@ -20,6 +20,7 @@
 
 - [ ] `pwsh ./scripts/Test-Baseline.ps1` passes.
 - [ ] `pwsh ./tests/Test-Baseline.Tests.ps1` passes.
+- [ ] `pwsh ./tests/Test-ClassificationReview.Tests.ps1` passes.
 - [ ] Existing flat Log Horizon fields remain compatible.
 - [ ] Generated files were updated through their source adapter.
 - [ ] New or changed recommendations reference an entry in `data/sources.json`.

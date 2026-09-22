@@ -26,15 +26,16 @@
     },
     {
       "id": "azure-sentinel-rule-corpus",
-      "title": "Azure Sentinel public rule corpus field analysis",
-      "url": "https://github.com/Azure/Azure-Sentinel",
-      "revision": "imported-from-log-horizon-ccaf2573618d546ff64d282aa59b0e94f2e2e440",
-      "observedOn": "2026-04-12",
+      "title": "Azure-Sentinel public content corpus",
+      "url": "https://github.com/Azure/Azure-Sentinel/commit/2e3336d0520681d277d1fa7b2fbc7730242f1d88",
+      "revision": "2e3336d0520681d277d1fa7b2fbc7730242f1d88",
+      "observedOn": "2026-09-22",
       "appliesTo": [
         "field-frequency-stats.json",
-        "high-value-fields.json"
+        "high-value-fields.json",
+        "log-classifications.json"
       ],
-      "scope": "Field references derived from public analytics rules, hunting queries, and solution content. The original upstream Azure-Sentinel commit was not recorded by the source dataset."
+      "scope": "Table identity and usage evidence from public analytics rules, hunting queries, parsers, and solution content. Classification, tier, retention, and billing recommendations require human review."
     },
     {
       "id": "log-horizon-implicit-consumers",

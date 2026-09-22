@@ -13,7 +13,8 @@ Generate review candidates from a fixed local Azure-Sentinel revision. Frequency
 1. Use PowerShell 7 from the repository root.
 2. Confirm the checkout contains `Detections`, `Hunting Queries`, or `Solutions`.
 3. Record the exact 40-character Azure-Sentinel commit SHA.
-4. Write candidates outside `data/`. Do not edit generated canonical files directly.
+4. Use a reviewed table-catalog snapshot from `Compare-TableCatalog.ps1`.
+5. Write candidates outside `data/`. Do not edit generated canonical files directly.
 
 ## Generate candidates
 
@@ -23,6 +24,7 @@ $revision = git -C ../Azure-Sentinel rev-parse HEAD
 pwsh ./scripts/New-FieldAnalysis.ps1 `
     -AzureSentinelPath ../Azure-Sentinel `
     -SourceRevision $revision `
+    -TableCatalogPath ./.github/table-catalog/snapshot.json `
     -FieldFrequencyOutputPath ./tmp/field-frequency-stats.json `
     -HighValueFieldsOutputPath ./tmp/high-value-fields.json `
     -SummaryOutputPath ./tmp/field-analysis-summary.md
@@ -34,10 +36,11 @@ For a reproducibility check, pass a fixed `-GeneratedAt` value and run the comma
 
 1. Read `field-analysis-summary.md` and inspect candidate diffs against `data/`.
 2. Confirm parsed rule and table counts are plausible for the selected revision.
-3. Check newly proposed fields against several source queries. Reject parser artifacts, aliases, operators, literals, and low-context fields.
-4. Preserve curated descriptions unless public evidence supports a correction.
-5. Treat empty `splitHints` on new candidates as intentional. Write split hints manually only when the KQL expression is valid and the split produces useful review context.
-6. Record uncertainty. Do not turn frequency thresholds into claims about detection quality.
+3. Compare discovered tables with the catalog, classifications, and `_CL` custom tables. Investigate names admitted by only one source.
+4. Check newly proposed fields against several source queries. Reject parser artifacts, aliases, operators, literals, and low-context fields.
+5. Preserve curated descriptions unless public evidence supports a correction.
+6. Treat empty `splitHints` on new candidates as intentional. Write split hints manually only when the KQL expression is valid and the split produces useful review context.
+7. Record uncertainty. Do not turn frequency thresholds into claims about detection quality.
 
 ## Promote reviewed output
 
