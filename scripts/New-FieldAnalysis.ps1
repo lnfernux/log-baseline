@@ -10,6 +10,8 @@ param(
 
     [string]$ExistingHighValueFieldsPath = (Join-Path (Split-Path -Parent $PSScriptRoot) 'data' 'high-value-fields.json'),
 
+    [string]$ExistingFieldFrequencyPath = (Join-Path (Split-Path -Parent $PSScriptRoot) 'data' 'field-frequency-stats.json'),
+
     [Parameter(Mandatory)]
     [string]$FieldFrequencyOutputPath,
 
@@ -51,11 +53,12 @@ $ignoredNames = [System.Collections.Generic.HashSet[string]]::new([System.String
 ) | ForEach-Object { [void]$ignoredNames.Add($_) }
 $regexTimeout = [timespan]::FromSeconds(2)
 $yamlQueryRegex = [regex]::new('^(?<indent>\s*)query\s*:\s*(?<value>.*)$', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase, $regexTimeout)
+$letSymbolRegex = [regex]::new('^\s*let\s+([A-Za-z_][A-Za-z0-9_]*)\s*=', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Multiline, $regexTimeout)
 $tableRegexes = @(
     [regex]::new('^\s*([A-Z][A-Za-z0-9_]*)\s*(?:\r?\n)?\s*\|', [System.Text.RegularExpressions.RegexOptions]::Multiline, $regexTimeout),
-    [regex]::new('^\s*let\s+\w+\s*=\s*([A-Z][A-Za-z0-9_]*)\b', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Multiline, $regexTimeout),
-    [regex]::new('\bjoin\s+(?:kind\s*=\s*\w+\s+)?\(?\s*([A-Z][A-Za-z0-9_]*)\b', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase, $regexTimeout),
-    [regex]::new('\bunion\s+(?:(?:isfuzzy|withsource|kind)\s*=\s*[^,\s]+[,\s]+)*([A-Z][A-Za-z0-9_]*)\b', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase, $regexTimeout)
+    [regex]::new('^\s*let\s+\w+\s*=\s*([A-Z][A-Za-z0-9_]*)\b(?!\s*\()', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Multiline, $regexTimeout),
+    [regex]::new('\bjoin\s+(?:kind\s*=\s*\w+\s+)?\(?\s*([A-Z][A-Za-z0-9_]*)\b(?!\s*\()', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase, $regexTimeout),
+    [regex]::new('\bunion\s+(?:(?:isfuzzy|withsource|kind)\s*=\s*[^,\s]+[,\s]+)*([A-Z][A-Za-z0-9_]*)\b(?!\s*\()', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase, $regexTimeout)
 )
 $fieldExpressionRegex = [regex]::new('\b([A-Za-z_][A-Za-z0-9_]*)\s*(?:==|!=|<>|<=|>=|<|>|=~|!~|\bin\s*\(|\bhas\b|\bcontains\b|\bstartswith\b|\bendswith\b|\bbetween\b|\bhas_any\b|\bhas_all\b)', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase, $regexTimeout)
 $projectRegex = [regex]::new('\|\s*project(?:-keep|-away)?\s+([^|;]+)', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Multiline, $regexTimeout)
@@ -125,10 +128,16 @@ function Get-KqlTables {
     param([Parameter(Mandatory)][string]$Kql)
 
     $tables = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $localSymbols = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($match in $letSymbolRegex.Matches($Kql)) {
+        [void]$localSymbols.Add($match.Groups[1].Value)
+    }
     foreach ($regex in $tableRegexes) {
         foreach ($match in $regex.Matches($Kql)) {
             $name = $match.Groups[1].Value
-            if ($name.Length -gt 2 -and -not $ignoredNames.Contains($name)) { [void]$tables.Add($name) }
+            if ($name.Length -gt 2 -and -not $ignoredNames.Contains($name) -and -not $localSymbols.Contains($name)) {
+                [void]$tables.Add($name)
+            }
         }
     }
 
@@ -177,6 +186,9 @@ if (-not (Test-Path -LiteralPath $TableCatalogPath -PathType Leaf)) {
 if (-not (Test-Path -LiteralPath $ExistingHighValueFieldsPath -PathType Leaf)) {
     throw "Existing high-value field file does not exist: $ExistingHighValueFieldsPath"
 }
+if (-not (Test-Path -LiteralPath $ExistingFieldFrequencyPath -PathType Leaf)) {
+    throw "Existing field-frequency file does not exist: $ExistingFieldFrequencyPath"
+}
 
 if (-not $SourceRevision) {
     $SourceRevision = (& git -C $sourceRoot rev-parse HEAD 2>$null)
@@ -218,9 +230,11 @@ if ($catalogTableNames.Count -eq 0) {
     throw "Table catalog '$TableCatalogPath' contains no table names."
 }
 $existingHighValue = Get-Content -LiteralPath $ExistingHighValueFieldsPath -Raw | ConvertFrom-Json
+$existingFrequency = Get-Content -LiteralPath $ExistingFieldFrequencyPath -Raw | ConvertFrom-Json
 $trustedTables = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 foreach ($entry in $classifications) { [void]$trustedTables.Add([string]$entry.tableName) }
 foreach ($property in $existingHighValue.PSObject.Properties) { [void]$trustedTables.Add($property.Name) }
+foreach ($property in $existingFrequency.perTable.PSObject.Properties) { [void]$trustedTables.Add($property.Name) }
 foreach ($tableName in $catalogTableNames) { [void]$trustedTables.Add($tableName) }
 
 $tableStats = @{}
@@ -281,7 +295,6 @@ $frequencyDocument = [ordered]@{
 }
 Write-JsonFile -Path $FieldFrequencyOutputPath -Value $frequencyDocument
 
-$existingHighValue = Get-Content -LiteralPath $ExistingHighValueFieldsPath -Raw | ConvertFrom-Json
 $candidateHighValue = [ordered]@{}
 foreach ($property in @($existingHighValue.PSObject.Properties | Sort-Object Name)) {
     $candidateHighValue[$property.Name] = [ordered]@{

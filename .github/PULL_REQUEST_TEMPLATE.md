@@ -24,5 +24,6 @@
 - [ ] Existing flat Log Horizon fields remain compatible.
 - [ ] Generated files were updated through their source adapter.
 - [ ] New or changed recommendations reference an entry in `data/sources.json`.
+- [ ] Baseline recommendations have explicit human decisions; uncertain tables are documented or deferred.
 - [ ] No secrets, tenant identifiers, customer data, or private telemetry are included.
 - [ ] Environment-specific context is not presented as a universal recommendation.

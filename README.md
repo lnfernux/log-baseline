@@ -89,6 +89,12 @@ See the [Log Horizon baseline methodology](https://github.com/lnfernux/log-horiz
 
 The plan-support files cover the complete Microsoft table feature matrix, including tables that do not yet have a classification entry. Field-frequency statistics likewise retain tables found in the public rule corpus even when the baseline does not classify them.
 
+### Human review workflow
+
+The [`baseline-human-review` skill](.github/skills/baseline-human-review/SKILL.md) runs the complete review process: prerequisite checks, source-backed proposal generation, an overview with confidence and uncertainty, one-table-at-a-time decisions, a resumable review ledger, approved-change promotion, and validation. A reviewer can accept, edit, reject, defer, or challenge each proposal. Uncertain tables are highlighted and default to deferred.
+
+All changes reach `main` through pull requests.
+
 ## Updating generated data
 
 Update commands use local, reviewable inputs. They do not download mutable sources during validation.
