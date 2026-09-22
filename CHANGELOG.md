@@ -10,7 +10,7 @@ The project uses semantic versioning for the data contract:
 
 ## 0.2.0 - 2026-09-22
 
-- Added eight human-reviewed classifications from Azure-Sentinel revision `2e3336d0520681d277d1fa7b2fbc7730242f1d88`.
+- Added 29 human-reviewed classifications from Azure-Sentinel revision `2e3336d0520681d277d1fa7b2fbc7730242f1d88`.
 - Recommended the Data Lake tier for Tailscale device and network data and UniFi Site Manager inventory, metrics, and configuration data.
 - Added exact Azure-Sentinel provenance for the reviewed classifications.
 - Added catalog-backed field analysis so unclassified standard tables remain discoverable without admitting arbitrary KQL identifiers.

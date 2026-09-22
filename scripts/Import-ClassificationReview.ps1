@@ -91,7 +91,7 @@ $sourcesJson = (($sources | ConvertTo-Json -Depth 30) + "`n").Replace("`r`n", "`
 [System.IO.File]::WriteAllText($sourcesPath, $sourcesJson, $utf8NoBom)
 
 $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-if ([version]$DataVersion -le [version]$manifest.dataVersion) { throw "DataVersion must be greater than $($manifest.dataVersion)." }
+if ([version]$DataVersion -lt [version]$manifest.dataVersion) { throw "DataVersion cannot be lower than $($manifest.dataVersion)." }
 $manifest.dataVersion = $DataVersion
 $manifest.importedOn = $ObservedOn.ToString('yyyy-MM-dd')
 $manifestJson = (($manifest | ConvertTo-Json -Depth 20) + "`n").Replace("`r`n", "`n").Replace("`r", "`n")

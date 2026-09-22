@@ -11281,5 +11281,488 @@
     "sourceIds": [
       "azure-sentinel-rule-corpus"
     ]
+  },
+  {
+    "tableName": "CybereinforceCTE_CL",
+    "connector": "Cybereinforce Threat Enforcement",
+    "classification": "primary",
+    "category": "Network Security",
+    "description": "Cybereinforce browser-level URL blocking, threat-intelligence matches, and administration events",
+    "keywords": [
+      "cybereinforce",
+      "url",
+      "browser",
+      "blocking",
+      "threat intelligence"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 180,
+    "domainId": "network",
+    "logTypeId": "security-event",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "DuoActivity_CL",
+    "connector": "Cisco Duo",
+    "classification": "primary",
+    "category": "Identity & Access",
+    "description": "Cisco Duo administrative activity including administrator, policy, and configuration changes",
+    "keywords": [
+      "duo",
+      "identity",
+      "administrator",
+      "policy",
+      "audit"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "domainId": "identity",
+    "logTypeId": "authentication",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "DuoAuthentication_CL",
+    "connector": "Cisco Duo",
+    "classification": "primary",
+    "category": "Identity & Access",
+    "description": "Cisco Duo authentication activity including outcomes, users, devices, locations, and factors",
+    "keywords": [
+      "duo",
+      "authentication",
+      "mfa",
+      "identity",
+      "device"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "domainId": "identity",
+    "logTypeId": "authentication",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "NetskopeAlertEvents_CL",
+    "connector": "Netskope Alert Events",
+    "classification": "primary",
+    "category": "Security Alerts",
+    "description": "Netskope security alert events for cloud, web, data, and threat activity",
+    "keywords": [
+      "netskope",
+      "alert",
+      "cloud",
+      "web",
+      "data security"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "domainId": "security-operations",
+    "logTypeId": "alert",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "Pathlock_TDnR_CL",
+    "connector": "Pathlock Threat Detection and Response for SAP",
+    "classification": "primary",
+    "category": "SAP Security",
+    "description": "Pathlock security-relevant SAP events enriched with business process context",
+    "keywords": [
+      "pathlock",
+      "sap",
+      "threat detection",
+      "audit",
+      "business process"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "domainId": "applications-workloads",
+    "logTypeId": "audit",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "RedSiftEmailForensics_CL",
+    "connector": "Red Sift",
+    "classification": "primary",
+    "category": "Email Security",
+    "description": "Red Sift email forensic events with sender, source, domain, URL, and message context",
+    "keywords": [
+      "red sift",
+      "email",
+      "forensics",
+      "sender",
+      "url"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "domainId": "email-collaboration",
+    "logTypeId": "security-event",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "SailPointISC_Events_CL",
+    "connector": "SailPoint Identity Security Cloud",
+    "classification": "primary",
+    "category": "Identity & Access",
+    "description": "SailPoint Identity Security Cloud events for identity governance operations and failures",
+    "keywords": [
+      "sailpoint",
+      "identity governance",
+      "access",
+      "audit",
+      "event"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "domainId": "identity",
+    "logTypeId": "authentication",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "SOCRadar_Alarms_CL",
+    "connector": "SOCRadar",
+    "classification": "primary",
+    "category": "Security Alerts",
+    "description": "SOCRadar alarms used for critical-alarm detection, volume monitoring, and investigation",
+    "keywords": [
+      "socradar",
+      "alarm",
+      "threat",
+      "severity",
+      "investigation"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "domainId": "security-operations",
+    "logTypeId": "alert",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "Speculus_Indicators_CL",
+    "connector": "Speculus Threat Intelligence",
+    "classification": "secondary",
+    "category": "Threat Intelligence",
+    "description": "Speculus threat indicators used to enrich and match activity in other security tables",
+    "keywords": [
+      "speculus",
+      "threat intelligence",
+      "indicator",
+      "ip address",
+      "enrichment"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 180,
+    "domainId": "threat-intelligence",
+    "logTypeId": "threat-indicator",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "SpyCloudBreachWatchlistV2_CL",
+    "connector": "SpyCloud Enterprise Protection",
+    "classification": "primary",
+    "category": "Threat Intelligence",
+    "description": "SpyCloud breach and malware exposure records for identifying affected users and credentials",
+    "keywords": [
+      "spycloud",
+      "breach",
+      "credential",
+      "malware",
+      "exposure"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "domainId": "threat-intelligence",
+    "logTypeId": "threat-indicator",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "StealthTalkAnomalousAuth_CL",
+    "connector": "StealthTalk",
+    "classification": "primary",
+    "category": "Identity & Access",
+    "description": "StealthTalk anomalous authentication events normalized for identity investigation",
+    "keywords": [
+      "stealthtalk",
+      "authentication",
+      "anomaly",
+      "identity",
+      "brute force"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "domainId": "identity",
+    "logTypeId": "authentication",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "StratoSecure_Findings_CL",
+    "connector": "StratoSecure Security Platform",
+    "classification": "primary",
+    "category": "Posture Management",
+    "description": "StratoSecure application security posture management findings",
+    "keywords": [
+      "stratosecure",
+      "aspm",
+      "finding",
+      "application security",
+      "posture"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 180,
+    "domainId": "security-operations",
+    "logTypeId": "posture",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "Tailscale_Audit_CL",
+    "connector": "Tailscale",
+    "classification": "primary",
+    "category": "Network Security",
+    "description": "Tailscale administrative audit events for network, identity, device, and policy changes",
+    "keywords": [
+      "tailscale",
+      "audit",
+      "network",
+      "device",
+      "policy"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "domainId": "network",
+    "logTypeId": "security-event",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "UniqkeyEvents_CL",
+    "connector": "Uniqkey",
+    "classification": "primary",
+    "category": "Identity & Access",
+    "description": "Uniqkey password and credential management audit events including credential and data exports",
+    "keywords": [
+      "uniqkey",
+      "credential",
+      "password",
+      "export",
+      "audit"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "domainId": "identity",
+    "logTypeId": "authentication",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "UtimacoESKMKmipServerLogs_CL",
+    "connector": "Utimaco Enterprise Secure Key Manager",
+    "classification": "primary",
+    "category": "Data Security",
+    "description": "Utimaco Enterprise Secure Key Manager KMIP server security and key-management events",
+    "keywords": [
+      "utimaco",
+      "kmip",
+      "key management",
+      "authentication",
+      "cryptography"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "domainId": "data-security",
+    "logTypeId": "security-event",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "Vaikora_AgentSignals_CL",
+    "connector": "Vaikora AI Agent Behavioral Signals",
+    "classification": "primary",
+    "category": "Cloud Security",
+    "description": "Vaikora AI agent actions, policy decisions, anomaly scores, and risk levels",
+    "keywords": [
+      "vaikora",
+      "ai agent",
+      "behavior",
+      "policy",
+      "anomaly"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 180,
+    "domainId": "cloud",
+    "logTypeId": "security-event",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "VaikoraO365_Quarantine_CL",
+    "connector": "Vaikora for Microsoft 365",
+    "classification": "primary",
+    "category": "Email Security",
+    "description": "Vaikora Microsoft 365 mailbox quarantine events classified for phishing risk",
+    "keywords": [
+      "vaikora",
+      "microsoft 365",
+      "email",
+      "quarantine",
+      "phishing"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "domainId": "email-collaboration",
+    "logTypeId": "security-event",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "ValimailEnforceEvents_CL",
+    "connector": "Valimail Enforce",
+    "classification": "primary",
+    "category": "Email Security",
+    "description": "Valimail Enforce audit events for authentication keys, DMARC policy, and user-management changes",
+    "keywords": [
+      "valimail",
+      "dmarc",
+      "email authentication",
+      "policy",
+      "audit"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "domainId": "email-collaboration",
+    "logTypeId": "security-event",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "WhisperASNReputation_CL",
+    "connector": "Whisper Security",
+    "classification": "secondary",
+    "category": "Threat Intelligence",
+    "description": "Whisper Security autonomous system number reputation and threat-score context",
+    "keywords": [
+      "whisper",
+      "asn",
+      "reputation",
+      "bgp",
+      "threat intelligence"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 180,
+    "domainId": "threat-intelligence",
+    "logTypeId": "threat-indicator",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "WhisperInfraContext_CL",
+    "connector": "Whisper Security",
+    "classification": "secondary",
+    "category": "Threat Intelligence",
+    "description": "Whisper Security DNS, WHOIS, BGP, and infrastructure context for indicators",
+    "keywords": [
+      "whisper",
+      "dns",
+      "whois",
+      "bgp",
+      "infrastructure"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 180,
+    "domainId": "threat-intelligence",
+    "logTypeId": "threat-indicator",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "WhisperThreatIntel_CL",
+    "connector": "Whisper Security",
+    "classification": "secondary",
+    "category": "Threat Intelligence",
+    "description": "Whisper Security threat-intelligence enrichment for IP addresses, domains, command-and-control, and malware associations",
+    "keywords": [
+      "whisper",
+      "threat intelligence",
+      "indicator",
+      "c2",
+      "malware"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 180,
+    "domainId": "threat-intelligence",
+    "logTypeId": "threat-indicator",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
   }
 ]

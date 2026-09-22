@@ -10,7 +10,7 @@ This review used Azure-Sentinel revision `2e3336d0520681d277d1fa7b2fbc7730242f1d
 - The catalog-backed run produced 42 new high-value-field candidates.
 - Known parser artifacts `aadFunc`, `baseQuery`, `against`, `array_concat`, `bin`, `CorrelationId`, `Description`, `isfuzzy`, and `the` did not appear as table keys.
 - The focused fixture now proves that an unclassified standard table is retained while a KQL alias is rejected. The suite passes 19 checks.
-- Human review approved eight of 30 classification candidates. One was accepted unchanged, seven were edited, one was deferred, and 21 remain pending.
+- Human review approved 29 of 30 classification candidates. Twenty-two were accepted unchanged, seven were edited, and one remains deferred.
 
 ## Findings
 
@@ -40,12 +40,12 @@ Repository-level URLs and inherited source labels were insufficient to reproduce
 2. Test discovery of an unclassified standard table.
 3. Test rejection of known KQL aliases during catalog-backed discovery.
 4. Import classifications only from explicit `accept` or `edit` decisions.
-5. Reject duplicate tables, unknown edit fields, and non-increasing data versions.
+5. Reject duplicate tables, unknown edit fields, and data-version regressions.
 6. Regenerate manifest checksums and run baseline validation during import.
 
 ## Remaining work
 
-- Review the remaining 21 candidates before any promotion.
+- Resolve billing and selected-plan evidence for the one deferred candidate before promotion.
 - Add deeper field-attribution tests for joins, parser functions, and calculated columns.
 - Keep the table-catalog snapshot current through the scheduled drift workflow.
 - Add isolated negative tests for malformed classification decision files.
