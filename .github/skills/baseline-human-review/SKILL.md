@@ -28,7 +28,7 @@ Before generating proposals, confirm:
 6. Required source snapshots and their exact revisions or observation dates are recorded.
 7. Microsoft Learn and public GitHub research are available. Never use tenant data, credentials, or private telemetry.
 8. Generated-data changes have candidate files produced by their source adapters. Do not edit generated data manually.
-9. `main` is protected using the settings in `.github/BRANCH_PROTECTION.md`. If protection cannot be verified, flag it in the final handoff.
+9. `main` is protected. If protection cannot be verified, flag it in the final handoff.
 
 Summarize the prerequisites and ask the human to resolve any failed item before continuing. Do not silently weaken a prerequisite.
 
