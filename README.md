@@ -91,7 +91,7 @@ The plan-support files cover the complete Microsoft table feature matrix, includ
 
 The [`baseline-human-review` skill](.github/skills/baseline-human-review/SKILL.md) runs the complete review process: prerequisite checks, source-backed proposal generation, an overview with confidence and uncertainty, one-table-at-a-time decisions, a resumable review ledger, approved-change promotion, and validation. A reviewer can accept, edit, reject, defer, or challenge each proposal. Uncertain tables are highlighted and default to deferred.
 
-All changes reach `main` through pull requests. Repository administrators should apply and verify the [documented main branch ruleset](.github/BRANCH_PROTECTION.md).
+All changes reach `main` through pull requests.
 
 ## Updating generated data
 
