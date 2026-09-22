@@ -1,0 +1,9 @@
+{
+  "CuratedTable": {
+    "description": "Curated entry",
+    "highValueFields": [
+      "TimeGenerated"
+    ],
+    "splitHints": []
+  }
+}

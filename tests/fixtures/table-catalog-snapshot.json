@@ -1,0 +1,18 @@
+{
+  "source": "https://api.loganalytics.io/v1/metadata",
+  "observedOn": "2026-09-15",
+  "tables": [
+    {
+      "name": "ExistingTable",
+      "tableType": "Microsoft",
+      "tableAPIState": "GA",
+      "description": "Still present."
+    },
+    {
+      "name": "RemovedTable",
+      "tableType": "Microsoft",
+      "tableAPIState": "GA",
+      "description": "No longer returned."
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+[
+  {
+    "tableName": "FixtureSecurity_CL",
+    "category": "Identity & Access"
+  },
+  {
+    "tableName": "FixtureSignin_CL",
+    "category": "Identity & Access"
+  }
+]

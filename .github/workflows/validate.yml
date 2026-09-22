@@ -37,3 +37,9 @@ jobs:
 
       - name: Test validation and packaging
         run: ./tests/Test-Baseline.Tests.ps1
+
+      - name: Test offline field analysis
+        run: ./tests/Test-FieldAnalysis.Tests.ps1
+
+      - name: Test table catalog review
+        run: ./tests/Test-TableCatalog.Tests.ps1

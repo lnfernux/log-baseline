@@ -27,11 +27,14 @@ Use the repository adapters rather than editing generated files directly:
 
 ```powershell
 pwsh ./scripts/Update-PlanTables.ps1 -InputPath <saved-learn-markdown> -ObservedOn <date>
+pwsh ./scripts/New-FieldAnalysis.ps1 -AzureSentinelPath <checkout> -SourceRevision <sha> -FieldFrequencyOutputPath <candidate> -HighValueFieldsOutputPath <candidate> -SummaryOutputPath <summary>
 pwsh ./scripts/Import-FieldAnalysis.ps1 -FieldFrequencyPath <file> -HighValueFieldsPath <file> -AzureSentinelRevision <sha> -ObservedOn <date>
 pwsh ./scripts/Import-LogHorizonSnapshot.ps1 -SourcePath <checkout> -Revision <sha>
 ```
 
-Review the resulting data, provenance changes, and manifest checksums together.
+Generate field-analysis candidates outside `data/`, review the summary and candidate diff, then use the import adapter for approved output. Frequency is supporting evidence, not proof that a field has high security value. Split hints require manual KQL review.
+
+Review the resulting data, provenance changes, and manifest checksums together. The scheduled table-catalog workflow creates a source-drift review queue and does not modify classifications automatically.
 
 ## Validation
 
@@ -40,6 +43,8 @@ Run from the repository root:
 ```powershell
 pwsh ./scripts/Test-Baseline.ps1
 pwsh ./tests/Test-Baseline.Tests.ps1
+pwsh ./tests/Test-FieldAnalysis.Tests.ps1
+pwsh ./tests/Test-TableCatalog.Tests.ps1
 ```
 
 Both commands must pass before opening a pull request. If a proposed contract change requires a failing fixture, update the validator and tests in the same pull request.

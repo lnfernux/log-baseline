@@ -1,0 +1,7 @@
+id: 33333333-3333-3333-3333-333333333333
+name: Fixture security rule three
+query: |
+  let recent = FixtureSecurity_CL
+  | where TimeGenerated > ago(1d);
+  recent
+  | project TimeGenerated, EventID, Account

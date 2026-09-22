@@ -1,0 +1,109 @@
+name: Review table catalog drift
+
+on:
+  schedule:
+    - cron: '23 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: table-catalog-review
+  cancel-in-progress: false
+
+jobs:
+  review:
+    name: Compare anonymous table catalog
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Compare table catalog
+        id: catalog
+        run: |
+          $snapshotPath = '.github/table-catalog/snapshot.json'
+          $reportPath = '.github/table-catalog/review.md'
+          $resultPath = Join-Path $env:RUNNER_TEMP 'table-catalog-result.json'
+          $failurePath = Join-Path $env:RUNNER_TEMP 'table-catalog-source-failure.md'
+
+          try {
+              $parameters = @{
+                  SnapshotPath = $snapshotPath
+                  ReportPath = $reportPath
+                  ResultPath = $resultPath
+                  MinimumTableCount = 500
+                  UpdateSnapshot = $true
+              }
+              if (-not (Test-Path -LiteralPath $snapshotPath)) {
+                  $parameters.InitializeSnapshot = $true
+              }
+
+              ./scripts/Compare-TableCatalog.ps1 @parameters | Out-Host
+              $result = Get-Content -LiteralPath $resultPath -Raw | ConvertFrom-Json
+              "failed=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+              "changed=$($result.changed.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+              "initialized=$($result.initialized.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          }
+          catch {
+              @(
+                  '# Table catalog source failure'
+                  ''
+                  "Workflow: $env:GITHUB_WORKFLOW"
+                  "Run: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+                  ''
+                  'The anonymous metadata source could not be validated. No table additions or removals were calculated.'
+                  ''
+                  '```text'
+                  $_.Exception.Message
+                  '```'
+              ) | Set-Content -LiteralPath $failurePath -Encoding utf8
+              "failed=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+              "changed=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+              "initialized=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          }
+
+      - name: Open or update source failure issue
+        if: steps.catalog.outputs.failed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $title = '[automation] Table catalog source failure'
+          $failurePath = Join-Path $env:RUNNER_TEMP 'table-catalog-source-failure.md'
+          $issue = @(gh issue list --state open --limit 100 --json number,title | ConvertFrom-Json | Where-Object title -eq $title)
+          if ($issue.Count -eq 0) {
+              gh issue create --title $title --body-file $failurePath
+          }
+          else {
+              gh issue edit $issue[0].number --body-file $failurePath
+          }
+
+      - name: Create or update draft review pull request
+        if: steps.catalog.outputs.failed == 'false' && (steps.catalog.outputs.changed == 'true' || steps.catalog.outputs.initialized == 'true')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $branch = 'automation/table-catalog-review'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -C $branch
+          git add -- .github/table-catalog/snapshot.json .github/table-catalog/review.md
+          git commit -m 'chore: review table catalog drift'
+          git push --force origin "HEAD:refs/heads/$branch"
+
+          $pullRequest = @(gh pr list --state open --head $branch --json number | ConvertFrom-Json)
+          if ($pullRequest.Count -eq 0) {
+              gh pr create --draft --base main --head $branch --title 'Review Microsoft Sentinel table catalog drift' --body-file .github/table-catalog/review.md
+          }
+          else {
+              gh pr edit $pullRequest[0].number --body-file .github/table-catalog/review.md
+          }

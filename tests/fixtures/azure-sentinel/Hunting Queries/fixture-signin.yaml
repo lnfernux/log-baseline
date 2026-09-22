@@ -1,0 +1,6 @@
+id: 44444444-4444-4444-4444-444444444444
+name: Fixture sign-in query
+query: |
+  FixtureSignin_CL
+  | where ResultType != 0
+  | project TimeGenerated, UserPrincipalName, IPAddress

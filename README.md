@@ -110,6 +110,13 @@ pwsh ./scripts/Update-PlanTables.ps1 `
 Import field-analysis output generated from a specific Azure-Sentinel checkout:
 
 ```powershell
+pwsh ./scripts/New-FieldAnalysis.ps1 `
+	-AzureSentinelPath ../Azure-Sentinel `
+	-SourceRevision <40-character-commit-sha> `
+	-FieldFrequencyOutputPath ./tmp/field-frequency-stats.json `
+	-HighValueFieldsOutputPath ./tmp/high-value-fields.json `
+	-SummaryOutputPath ./tmp/field-analysis-summary.md
+
 pwsh ./scripts/Import-FieldAnalysis.ps1 `
 	-FieldFrequencyPath ./tmp/field-frequency-stats.json `
 	-HighValueFieldsPath ./tmp/high-value-fields.json `
@@ -117,7 +124,15 @@ pwsh ./scripts/Import-FieldAnalysis.ps1 `
 	-ObservedOn 2026-09-13
 ```
 
+Generation preserves curated high-value entries and adds threshold-qualified candidates without inventing split hints. Review the summary and candidate diff before running the import adapter. The workspace skill at [`.github/skills/high-value-field-generation/SKILL.md`](.github/skills/high-value-field-generation/SKILL.md) contains the full review checklist and examples.
+
 The initial field-analysis snapshot predates revision capture. Its provenance record states that limitation explicitly. Future imports require the exact Azure-Sentinel commit.
+
+### Table catalog review
+
+The weekly `table-catalog-review.yml` workflow compares the anonymous Azure Monitor metadata API with a versioned source snapshot. It opens or updates a draft pull request containing only the refreshed snapshot and a review report. It never edits classifications. Source failures create or update a separate issue and cannot be interpreted as table removals.
+
+The first successful run proposes the initial snapshot. Later runs report additions and catalog disappearances for the two [Baseline Curator](.github/agents/baseline-curator.agent.md) flows: automatic proposal generation or one-table-at-a-time human review.
 
 ## Validation
 
@@ -129,6 +144,8 @@ Run from the repository root:
 ```powershell
 pwsh ./scripts/Test-Baseline.ps1
 pwsh ./tests/Test-Baseline.Tests.ps1
+pwsh ./tests/Test-FieldAnalysis.Tests.ps1
+pwsh ./tests/Test-TableCatalog.Tests.ps1
 ```
 
 Validation covers JSON parsing and schemas, required values, unique table names, lifecycle references, plan lists, cross-file relationships, and manifest checksums.

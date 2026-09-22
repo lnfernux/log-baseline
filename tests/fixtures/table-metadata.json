@@ -1,0 +1,20 @@
+{
+  "tables": [
+    {
+      "id": "ExistingTable",
+      "name": "ExistingTable",
+      "tableType": "Microsoft",
+      "description": "Still present.",
+      "tableAPIState": "GA",
+      "columns": []
+    },
+    {
+      "id": "NewTable",
+      "name": "NewTable",
+      "tableType": "Microsoft",
+      "description": "New table requiring classification review.",
+      "tableAPIState": "Preview",
+      "columns": []
+    }
+  ]
+}
