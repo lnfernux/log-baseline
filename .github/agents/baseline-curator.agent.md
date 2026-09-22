@@ -35,6 +35,8 @@ Use the human-in-the-loop flow unless the user explicitly requests automatic pro
 
 ## Human-in-the-loop review flow
 
+For a complete multi-table review, follow the `baseline-human-review` skill so prerequisites, the review ledger, uncertainty, promotion, and pull request handoff remain consistent.
+
 1. Build the review queue, but present exactly one table at a time.
 2. For the current table, show existing and proposed values, public evidence, documented facts, recommendation judgment, uncertainty, and compatibility impact.
 3. Ask the reviewer for counterarguments and a decision: approve, reject, edit, or defer.

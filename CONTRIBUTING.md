@@ -5,6 +5,7 @@ Contributions are welcome for incorrect classifications, missing Microsoft Senti
 ## Before submitting
 
 - Search existing issues and pull requests.
+- Create a feature branch. Direct changes to `main` are not accepted.
 - Use public documentation or public repositories as evidence.
 - Do not include tenant IDs, subscription IDs, workspace IDs, customer names, queries containing customer data, credentials, or screenshots from private environments.
 - Explain environment-specific recommendations as context rather than universal defaults.
@@ -20,6 +21,8 @@ For a classification change, include:
 - A concise rationale.
 - Public source links.
 - Whether the change affects security value, tier, retention, lifecycle, or taxonomy.
+
+For multi-table or full-baseline review, use the [`baseline-human-review` skill](.github/skills/baseline-human-review/SKILL.md). It records explicit per-table decisions, counterarguments, confidence, and unresolved uncertainty before applying approved changes.
 
 Plan support and field-frequency statistics are regenerated from their upstream sources.
 

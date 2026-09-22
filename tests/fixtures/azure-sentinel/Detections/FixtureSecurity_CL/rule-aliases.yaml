@@ -1,0 +1,13 @@
+id: fixture-rule-aliases
+name: Fixture rule with local aliases
+query: |
+  let baseQuery = FixtureSecurity_CL
+      | where Account == "fixture";
+  let aadFunc = baseQuery
+      | where EventID == 4624;
+  let aadSignin = aadFunc
+      | summarize Events = count() by bin(TimeGenerated, 1h);
+  aadSignin
+  | extend Values = array_concat(dynamic([]), dynamic([]))
+    | union against
+  | project Account, EventID, TimeGenerated
