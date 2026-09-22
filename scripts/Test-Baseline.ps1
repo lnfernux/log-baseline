@@ -138,6 +138,26 @@ $allowedCategories = @(
 Assert-Baseline ($classifications.Count -ge 480) 'Expected at least 480 classification entries'
 Assert-Baseline (@($tableNames | Sort-Object -Unique).Count -eq $tableNames.Count) 'Classification table names must be unique'
 
+$baselinePath = Join-Path $root 'baselines'
+$previousBaselineNames = @()
+foreach ($baselineProperty in $manifest.baselines.PSObject.Properties) {
+    $file = Join-Path $baselinePath $baselineProperty.Name
+    Assert-Baseline (Test-Path -LiteralPath $file -PathType Leaf) "Pre-made baseline is missing: $($baselineProperty.Name)"
+    if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { continue }
+    Assert-Baseline ((Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash -eq $baselineProperty.Value) "Checksum mismatch: baselines/$($baselineProperty.Name)"
+    try {
+        Assert-Baseline (Test-Json -Path $file -SchemaFile (Join-Path $schemaPath 'log-classifications.schema.json') -ErrorAction Stop) "$($baselineProperty.Name) does not match the classification schema"
+        $baselineRecords = @(Get-Content -LiteralPath $file -Raw | ConvertFrom-Json)
+        $baselineNames = @($baselineRecords.tableName)
+        Assert-Baseline (@($baselineNames | Where-Object { $_ -notin $tableNames }).Count -eq 0) "$($baselineProperty.Name) references unknown tables"
+        Assert-Baseline (@($previousBaselineNames | Where-Object { $_ -notin $baselineNames }).Count -eq 0) "$($baselineProperty.Name) is not cumulative"
+        $previousBaselineNames = $baselineNames
+    }
+    catch {
+        $script:failures.Add("Pre-made baseline validation failed for $($baselineProperty.Name): $($_.Exception.Message)")
+    }
+}
+
 $taxonomy = Read-BaselineJson (Join-Path $dataPath 'taxonomy.json')
 $domainIds = @($taxonomy.domains.id)
 $logTypeIds = @($taxonomy.logTypes.id)

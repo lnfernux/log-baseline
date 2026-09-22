@@ -44,7 +44,25 @@ foreach ($fileName in $releaseFiles) {
 }
 $manifest.files = [pscustomobject]$files
 
+$baselinePath = Join-Path $root 'baselines'
+$baselines = [ordered]@{}
+foreach ($fileName in 'minimum.json', 'recommended.json', 'plus.json') {
+    $path = Join-Path $baselinePath $fileName
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        throw "Required pre-made baseline is missing: $fileName"
+    }
+    $content = [System.IO.File]::ReadAllText($path).Replace("`r`n", "`n").Replace("`r", "`n")
+    [System.IO.File]::WriteAllText($path, $content, $utf8NoBom)
+    $baselines[$fileName] = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
+}
+if ($manifest.PSObject.Properties.Name -contains 'baselines') {
+    $manifest.baselines = [pscustomobject]$baselines
+}
+else {
+    $manifest | Add-Member -NotePropertyName baselines -NotePropertyValue ([pscustomobject]$baselines)
+}
+
 $manifestJson = (($manifest | ConvertTo-Json -Depth 10) + "`n").Replace("`r`n", "`n").Replace("`r", "`n")
 [System.IO.File]::WriteAllText($manifestPath, $manifestJson, $utf8NoBom)
 
-Write-Host "Updated manifest checksums for $($releaseFiles.Count) files."
+Write-Host "Updated manifest checksums for $($releaseFiles.Count) data files and $($baselines.Count) pre-made baselines."

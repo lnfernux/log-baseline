@@ -8,6 +8,7 @@ $root = Split-Path -Parent $PSScriptRoot
 $scriptPath = Join-Path $root 'scripts' 'New-FieldAnalysis.ps1'
 $fixturePath = Join-Path $PSScriptRoot 'fixtures' 'azure-sentinel'
 $classificationPath = Join-Path $PSScriptRoot 'fixtures' 'field-analysis-classifications.json'
+$tableCatalogPath = Join-Path $PSScriptRoot 'fixtures' 'field-analysis-table-catalog.json'
 $existingHighValuePath = Join-Path $PSScriptRoot 'fixtures' 'high-value-fields.json'
 $outputPath = Join-Path ([System.IO.Path]::GetTempPath()) "log-baseline-field-analysis-$([guid]::NewGuid().ToString('N'))"
 $failures = [System.Collections.Generic.List[string]]::new()
@@ -28,6 +29,7 @@ try {
     & $scriptPath `
         -AzureSentinelPath $fixturePath `
         -ClassificationsPath $classificationPath `
+        -TableCatalogPath $tableCatalogPath `
         -ExistingHighValueFieldsPath $existingHighValuePath `
         -FieldFrequencyOutputPath $frequencyPath `
         -HighValueFieldsOutputPath $highValuePath `
@@ -42,18 +44,21 @@ try {
     if (Test-Path -LiteralPath $frequencyPath) {
         $frequency = Get-Content -LiteralPath $frequencyPath -Raw | ConvertFrom-Json
         Assert-Test ($frequency.generatedAt -eq '2026-09-22T00:00:00.0000000+00:00') 'Generated timestamp was not deterministic'
-        Assert-Test ($frequency.totalRulesParsed -eq 4) 'Expected four parsed rules'
-        Assert-Test ($frequency.totalTables -eq 2) 'Expected two discovered tables'
+        Assert-Test ($frequency.totalRulesParsed -eq 7) 'Expected seven parsed rules'
+        Assert-Test ($frequency.totalTables -eq 3) 'Expected three discovered tables'
         Assert-Test (@($frequency.universalFields) -contains 'TimeGenerated') 'TimeGenerated should be universal in the fixture'
         Assert-Test ($frequency.perTable.FixtureSecurity_CL.Account -eq 3) 'Account frequency should be counted once per matching rule'
         Assert-Test ($frequency.perTable.FixtureSecurity_CL.EventID -eq 3) 'EventID frequency should be counted once per matching rule'
         Assert-Test ($frequency.perTable.PSObject.Properties.Name -notcontains 'FixtureSignin_CL') 'Tables below the rule threshold should not appear in perTable'
+        Assert-Test ($null -ne $frequency.perTable.FixtureStandardTable) 'Catalog-listed standard tables must remain discoverable before classification'
+        Assert-Test ($frequency.perTable.PSObject.Properties.Name -notcontains 'against') 'KQL aliases must not be admitted by catalog-backed discovery'
     }
 
     if (Test-Path -LiteralPath $highValuePath) {
         $highValue = Get-Content -LiteralPath $highValuePath -Raw | ConvertFrom-Json
         Assert-Test ($null -ne $highValue.CuratedTable) 'Curated high-value entries must be preserved'
         Assert-Test ($null -ne $highValue.FixtureSecurity_CL) 'Eligible mined tables should be added as candidates'
+        Assert-Test ($null -ne $highValue.FixtureStandardTable) 'Catalog-listed standard tables should become review candidates'
         Assert-Test (@($highValue.FixtureSecurity_CL.highValueFields).Count -ge 3) 'Mined candidates need at least three fields'
         Assert-Test (@($highValue.FixtureSecurity_CL.splitHints).Count -eq 0) 'Automation must not invent split hints'
     }

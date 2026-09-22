@@ -1,0 +1,12 @@
+{
+  "source": "fixture",
+  "observedOn": "2026-09-22",
+  "tables": [
+    {
+      "name": "FixtureStandardTable",
+      "tableType": "Microsoft",
+      "tableAPIState": "GA",
+      "description": "Standard table used to verify catalog-backed discovery."
+    }
+  ]
+}

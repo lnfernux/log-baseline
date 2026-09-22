@@ -1,8 +1,8 @@
 # Microsoft Sentinel Log Baseline
 
 [![Validate baseline](https://github.com/lnfernux/log-baseline/actions/workflows/validate.yml/badge.svg)](https://github.com/lnfernux/log-baseline/actions/workflows/validate.yml)
-[![Data version](https://img.shields.io/badge/data-0.1.0-00cc00)](CHANGELOG.md)
-[![Schema version](https://img.shields.io/badge/schema-1.0.0-475569)](data/manifest.json)
+[![Data version](https://img.shields.io/badge/data-0.2.0-00cc00)](CHANGELOG.md)
+[![Schema version](https://img.shields.io/badge/schema-1.1.0-475569)](data/manifest.json)
 [![License](https://img.shields.io/badge/license-CC%20BY%204.0%20%2B%20MIT-475569)](LICENSE.md)
 
 > [!IMPORTANT]
@@ -28,6 +28,8 @@ The canonical files are stored in [`data/`](data/):
 | `custom-classifications-example.json` | Log Horizon-compatible override examples. |
 | `taxonomy.json` | The generic Domain > Log type mapping used by the explorer. |
 | `sources.json` | Versioned provenance records referenced by classifications and generated datasets. |
+
+The [`baselines/`](baselines/) folder contains the cumulative Minimum, Recommended, and Plus layers originally defined by log-baseline-web. Run `pwsh ./scripts/Update-PreMadeBaselines.ps1` after classification changes. The generated layers are schema-validated, checksum-pinned in the manifest, and included in release artifacts.
 
 The initial data was migrated without semantic changes from [Log Horizon](https://github.com/lnfernux/log-horizon).
 
@@ -113,6 +115,7 @@ Import field-analysis output generated from a specific Azure-Sentinel checkout:
 pwsh ./scripts/New-FieldAnalysis.ps1 `
 	-AzureSentinelPath ../Azure-Sentinel `
 	-SourceRevision <40-character-commit-sha> `
+	-TableCatalogPath ./.github/table-catalog/snapshot.json `
 	-FieldFrequencyOutputPath ./tmp/field-frequency-stats.json `
 	-HighValueFieldsOutputPath ./tmp/high-value-fields.json `
 	-SummaryOutputPath ./tmp/field-analysis-summary.md
@@ -128,6 +131,19 @@ Generation preserves curated high-value entries and adds threshold-qualified can
 
 The initial field-analysis snapshot predates revision capture. Its provenance record states that limitation explicitly. Future imports require the exact Azure-Sentinel commit.
 
+Import explicitly approved classification decisions from a human review:
+
+```powershell
+pwsh ./scripts/Import-ClassificationReview.ps1 `
+	-CandidatesPath ./artifacts/baseline-review/<review>/candidates.json `
+	-DecisionsPath ./artifacts/baseline-review/<review>/approved-decisions.json `
+	-AzureSentinelRevision <40-character-commit-sha> `
+	-ObservedOn <date> `
+	-DataVersion <next-version>
+```
+
+The importer accepts only `accept` and `edit` decisions, applies structured edits, rejects duplicate tables and unknown fields, updates provenance and version metadata, regenerates checksums, and validates the result.
+
 ### Table catalog review
 
 The weekly `table-catalog-review.yml` workflow compares the anonymous Azure Monitor metadata API with a versioned source snapshot. It opens or updates a draft pull request containing only the refreshed snapshot and a review report. It never edits classifications. Source failures create or update a separate issue and cannot be interpreted as table removals.
@@ -137,7 +153,7 @@ The first successful run proposes the initial snapshot. Later runs report additi
 ## Validation
 
 > [!TIP]
-> Run both commands before proposing a change. CI executes the same checks on Windows and Linux.
+> Run all commands before proposing a change. CI executes the same checks on Windows and Linux.
 
 Run from the repository root:
 
@@ -145,10 +161,11 @@ Run from the repository root:
 pwsh ./scripts/Test-Baseline.ps1
 pwsh ./tests/Test-Baseline.Tests.ps1
 pwsh ./tests/Test-FieldAnalysis.Tests.ps1
+pwsh ./tests/Test-ClassificationReview.Tests.ps1
 pwsh ./tests/Test-TableCatalog.Tests.ps1
 ```
 
-Validation covers JSON parsing and schemas, required values, unique table names, lifecycle references, plan lists, cross-file relationships, and manifest checksums.
+Validation covers JSON parsing and schemas, required values, unique table names, lifecycle references, plan lists, pre-made baseline layers, cross-file relationships, and manifest checksums.
 
 ## Release artifacts
 

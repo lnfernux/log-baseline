@@ -22,7 +22,7 @@ if ($LASTEXITCODE -ne 0 -or $headRevision -notmatch '^[a-fA-F0-9]{40}$') {
 if ($headRevision -ne $SourceRevision) {
     throw "SourceRevision $SourceRevision does not match repository HEAD $headRevision."
 }
-$releaseChanges = @(& git -C $root status --porcelain -- data schemas scripts LICENSE.md)
+$releaseChanges = @(& git -C $root status --porcelain -- baselines data schemas scripts LICENSE.md)
 if ($releaseChanges.Count -gt 0) {
     throw "Release inputs contain uncommitted changes:`n$($releaseChanges -join "`n")"
 }
@@ -45,10 +45,14 @@ if (Test-Path -LiteralPath $stagingPath) {
 
 New-Item -ItemType Directory -Path (Join-Path $stagingPath 'data') -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $stagingPath 'schemas') -Force | Out-Null
+New-Item -ItemType Directory -Path (Join-Path $stagingPath 'baselines') -Force | Out-Null
 
 Copy-Item -LiteralPath $manifestPath -Destination (Join-Path $stagingPath 'data')
 foreach ($fileProperty in $manifest.files.PSObject.Properties) {
     Copy-Item -LiteralPath (Join-Path $dataPath $fileProperty.Name) -Destination (Join-Path $stagingPath 'data')
+}
+foreach ($fileProperty in $manifest.baselines.PSObject.Properties) {
+    Copy-Item -LiteralPath (Join-Path $root 'baselines' $fileProperty.Name) -Destination (Join-Path $stagingPath 'baselines')
 }
 Copy-Item -Path (Join-Path $schemaPath '*.json') -Destination (Join-Path $stagingPath 'schemas')
 Copy-Item -LiteralPath (Join-Path $root 'LICENSE.md') -Destination $stagingPath

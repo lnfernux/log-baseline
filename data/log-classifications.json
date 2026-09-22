@@ -11096,5 +11096,190 @@
     "sourceIds": [
       "log-horizon-classifications"
     ]
+  },
+  {
+    "tableName": "CheckpointHEC_CL",
+    "connector": "Check Point Harmony Email and Collaboration",
+    "classification": "primary",
+    "category": "Email Security",
+    "description": "Check Point Harmony Email and Collaboration security events including phishing, data loss prevention, and quarantine outcomes",
+    "keywords": [
+      "check point",
+      "harmony",
+      "email",
+      "phishing",
+      "dlp",
+      "quarantine"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 180,
+    "domainId": "email-collaboration",
+    "logTypeId": "security-event",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "ContraForceEvents_CL",
+    "connector": "ContraForce",
+    "classification": "primary",
+    "category": "Security Alerts",
+    "description": "ContraForce security service delivery events including incident detections, administrative access changes, machine credential activity, and destructive workspace actions",
+    "keywords": [
+      "contraforce",
+      "incident",
+      "administration",
+      "credential",
+      "workspace"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "domainId": "security-operations",
+    "logTypeId": "alert",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "Tailscale_Devices_CL",
+    "connector": "Tailscale",
+    "classification": "secondary",
+    "category": "Configuration Management",
+    "description": "Tailscale device inventory and state used as context for network investigations",
+    "keywords": [
+      "tailscale",
+      "device",
+      "inventory",
+      "network",
+      "configuration"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "datalake",
+    "isFree": false,
+    "recommendedRetentionDays": 180,
+    "domainId": "infrastructure-platform",
+    "logTypeId": "configuration",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "Tailscale_Network_CL",
+    "connector": "Tailscale",
+    "classification": "primary",
+    "category": "Network Flow",
+    "description": "Tailscale network session activity normalized for traffic investigation",
+    "keywords": [
+      "tailscale",
+      "network",
+      "session",
+      "flow",
+      "traffic"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "datalake",
+    "isFree": false,
+    "recommendedRetentionDays": 180,
+    "domainId": "network",
+    "logTypeId": "network-flow",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "Unifi_SiteManager_Devices_CL",
+    "connector": "UniFi Site Manager",
+    "classification": "secondary",
+    "category": "Configuration Management",
+    "description": "UniFi Site Manager device inventory, firmware, and operational state",
+    "keywords": [
+      "unifi",
+      "device",
+      "inventory",
+      "firmware",
+      "state"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "datalake",
+    "isFree": false,
+    "recommendedRetentionDays": 180,
+    "domainId": "infrastructure-platform",
+    "logTypeId": "configuration",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "Unifi_SiteManager_Hosts_CL",
+    "connector": "UniFi Site Manager",
+    "classification": "secondary",
+    "category": "Configuration Management",
+    "description": "UniFi Site Manager host and controller inventory and connection state",
+    "keywords": [
+      "unifi",
+      "host",
+      "controller",
+      "inventory",
+      "configuration"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "datalake",
+    "isFree": false,
+    "recommendedRetentionDays": 180,
+    "domainId": "infrastructure-platform",
+    "logTypeId": "configuration",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "Unifi_SiteManager_ISPMetrics_CL",
+    "connector": "UniFi Site Manager",
+    "classification": "secondary",
+    "category": "Infrastructure Diagnostics",
+    "description": "UniFi Site Manager internet service provider availability, latency, and performance metrics",
+    "keywords": [
+      "unifi",
+      "isp",
+      "latency",
+      "availability",
+      "metrics"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "datalake",
+    "isFree": false,
+    "recommendedRetentionDays": 90,
+    "domainId": "infrastructure-platform",
+    "logTypeId": "diagnostic",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
+  },
+  {
+    "tableName": "Unifi_SiteManager_Sites_CL",
+    "connector": "UniFi Site Manager",
+    "classification": "secondary",
+    "category": "Configuration Management",
+    "description": "UniFi Site Manager site inventory and security configuration state",
+    "keywords": [
+      "unifi",
+      "site",
+      "inventory",
+      "network",
+      "configuration"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "datalake",
+    "isFree": false,
+    "recommendedRetentionDays": 180,
+    "domainId": "infrastructure-platform",
+    "logTypeId": "configuration",
+    "sourceIds": [
+      "azure-sentinel-rule-corpus"
+    ]
   }
 ]

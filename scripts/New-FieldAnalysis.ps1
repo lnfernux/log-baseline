@@ -5,6 +5,9 @@ param(
 
     [string]$ClassificationsPath = (Join-Path (Split-Path -Parent $PSScriptRoot) 'data' 'log-classifications.json'),
 
+    [Parameter(Mandatory)]
+    [string]$TableCatalogPath,
+
     [string]$ExistingHighValueFieldsPath = (Join-Path (Split-Path -Parent $PSScriptRoot) 'data' 'high-value-fields.json'),
 
     [Parameter(Mandatory)]
@@ -168,6 +171,9 @@ if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) {
 if (-not (Test-Path -LiteralPath $ClassificationsPath -PathType Leaf)) {
     throw "Classification file does not exist: $ClassificationsPath"
 }
+if (-not (Test-Path -LiteralPath $TableCatalogPath -PathType Leaf)) {
+    throw "Table catalog file does not exist: $TableCatalogPath"
+}
 if (-not (Test-Path -LiteralPath $ExistingHighValueFieldsPath -PathType Leaf)) {
     throw "Existing high-value field file does not exist: $ExistingHighValueFieldsPath"
 }
@@ -202,12 +208,27 @@ $yamlFiles = @($contentRoots | ForEach-Object {
 } | Sort-Object -Unique)
 if ($yamlFiles.Count -eq 0) { throw 'No YAML content was found in the supported Azure-Sentinel paths.' }
 
+$classifications = @(Get-Content -LiteralPath $ClassificationsPath -Raw | ConvertFrom-Json)
+$tableCatalog = Get-Content -LiteralPath $TableCatalogPath -Raw | ConvertFrom-Json
+if ($tableCatalog.PSObject.Properties.Name -notcontains 'tables') {
+    throw "Table catalog '$TableCatalogPath' does not contain a tables property."
+}
+$catalogTableNames = @($tableCatalog.tables | ForEach-Object { [string]$_.name } | Where-Object { $_ } | Sort-Object -Unique)
+if ($catalogTableNames.Count -eq 0) {
+    throw "Table catalog '$TableCatalogPath' contains no table names."
+}
+$existingHighValue = Get-Content -LiteralPath $ExistingHighValueFieldsPath -Raw | ConvertFrom-Json
+$trustedTables = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+foreach ($entry in $classifications) { [void]$trustedTables.Add([string]$entry.tableName) }
+foreach ($property in $existingHighValue.PSObject.Properties) { [void]$trustedTables.Add($property.Name) }
+foreach ($tableName in $catalogTableNames) { [void]$trustedTables.Add($tableName) }
+
 $tableStats = @{}
 $totalRulesParsed = 0
 foreach ($file in $yamlFiles) {
     foreach ($query in @(Get-YamlQueries -Path $file)) {
         $totalRulesParsed++
-        $tables = @(Get-KqlTables -Kql $query)
+        $tables = @(Get-KqlTables -Kql $query | Where-Object { $trustedTables.Contains($_) -or $_ -match '_CL$' })
         if ($tables.Count -eq 0) { continue }
         $fields = @(Get-KqlFields -Kql $query -TableNames $tables)
         foreach ($table in $tables) {
@@ -226,7 +247,6 @@ if ($totalRulesParsed -eq 0 -or $tableStats.Count -eq 0) {
     throw 'No query-bearing rules or referenced tables were found.'
 }
 
-$classifications = @(Get-Content -LiteralPath $ClassificationsPath -Raw | ConvertFrom-Json)
 $categoryByTable = @{}
 foreach ($entry in $classifications) { $categoryByTable[$entry.tableName] = $entry.category }
 
@@ -298,6 +318,7 @@ $summary = @(
     "- Generated at: ``$($GeneratedAt.ToString('o'))``",
     "- YAML files scanned: $($yamlFiles.Count)",
     "- Query blocks parsed: $totalRulesParsed",
+    "- Catalog tables trusted: $($catalogTableNames.Count)",
     "- Tables discovered: $($tableStats.Count)",
     "- Tables meeting the $MinimumRulesPerTable-rule threshold: $($perTable.Count)",
     "- New high-value candidates: $($addedTables.Count)",

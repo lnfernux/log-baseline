@@ -1,0 +1,200 @@
+[
+  {
+    "tableName": "SigninLogs",
+    "connector": "Microsoft Entra ID",
+    "classification": "primary",
+    "category": "Identity & Access",
+    "description": "Interactive user sign-in events from Microsoft Entra ID including MFA, conditional access, and location",
+    "keywords": [
+      "sign-in",
+      "login",
+      "authentication",
+      "entra",
+      "aad",
+      "mfa",
+      "conditional access",
+      "identity"
+    ],
+    "mitreSources": [
+      "User Account: Authentication",
+      "Logon Session: Logon Session Creation"
+    ],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "AuditLogs",
+    "connector": "Microsoft Entra ID",
+    "classification": "primary",
+    "category": "Identity & Access",
+    "description": "Entra ID directory audit events including user, group, role, and application changes",
+    "keywords": [
+      "audit",
+      "entra",
+      "aad",
+      "directory",
+      "role",
+      "group",
+      "application",
+      "identity"
+    ],
+    "mitreSources": [
+      "User Account: User Account Modification",
+      "Active Directory: Active Directory Object Modification",
+      "Group: Group Modification"
+    ],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "AADRiskyUsers",
+    "connector": "Microsoft Entra ID Identity Protection",
+    "classification": "primary",
+    "category": "Identity & Access",
+    "description": "Users flagged as risky by Entra ID Identity Protection based on aggregated risk signals",
+    "keywords": [
+      "risky",
+      "users",
+      "identity protection",
+      "entra",
+      "aad",
+      "risk",
+      "compromise"
+    ],
+    "mitreSources": [
+      "User Account: Authentication"
+    ],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "AADUserRiskEvents",
+    "connector": "Microsoft Entra ID Identity Protection",
+    "classification": "primary",
+    "category": "Identity & Access",
+    "description": "Individual risk detection events such as leaked credentials, anonymous IP sign-ins, and impossible travel",
+    "keywords": [
+      "risk",
+      "events",
+      "identity protection",
+      "leaked credentials",
+      "impossible travel",
+      "entra",
+      "aad"
+    ],
+    "mitreSources": [
+      "User Account: Authentication"
+    ],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "SecurityAlert",
+    "connector": "Microsoft Sentinel (various)",
+    "classification": "primary",
+    "category": "Security Alerts",
+    "description": "Aggregated security alerts from all connected Microsoft and third-party providers",
+    "keywords": [
+      "alerts",
+      "detections",
+      "incidents",
+      "security",
+      "sentinel"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": true,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "SecurityIncident",
+    "connector": "Microsoft Sentinel",
+    "classification": "primary",
+    "category": "Security Alerts",
+    "description": "Sentinel incidents created from correlated alerts and manual escalation",
+    "keywords": [
+      "incidents",
+      "cases",
+      "sentinel",
+      "triage",
+      "soc"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": true,
+    "recommendedRetentionDays": 365,
+    "platform": true,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "AzureActivity",
+    "connector": "Azure Activity Log",
+    "classification": "primary",
+    "category": "Cloud Control Plane",
+    "description": "Azure subscription-level management events including resource CRUD, RBAC changes, and service health",
+    "keywords": [
+      "azure",
+      "activity",
+      "arm",
+      "management",
+      "resource",
+      "rbac",
+      "control plane"
+    ],
+    "mitreSources": [
+      "Cloud Service: Cloud Service Modification"
+    ],
+    "recommendedTier": "analytics",
+    "isFree": true,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "OfficeActivity",
+    "connector": "Microsoft 365",
+    "classification": "primary",
+    "category": "Cloud Control Plane",
+    "description": "Office 365 audit events covering Exchange, SharePoint, OneDrive, and Teams user and admin activities",
+    "keywords": [
+      "office",
+      "365",
+      "sharepoint",
+      "exchange",
+      "teams",
+      "onedrive",
+      "audit"
+    ],
+    "mitreSources": [
+      "Application Log: Application Log Content"
+    ],
+    "recommendedTier": "analytics",
+    "isFree": true,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  }
+]

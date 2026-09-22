@@ -41,5 +41,8 @@ jobs:
       - name: Test offline field analysis
         run: ./tests/Test-FieldAnalysis.Tests.ps1
 
+      - name: Test classification review import
+        run: ./tests/Test-ClassificationReview.Tests.ps1
+
       - name: Test table catalog review
         run: ./tests/Test-TableCatalog.Tests.ps1

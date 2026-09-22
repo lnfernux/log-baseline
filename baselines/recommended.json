@@ -1,0 +1,388 @@
+[
+  {
+    "tableName": "SigninLogs",
+    "connector": "Microsoft Entra ID",
+    "classification": "primary",
+    "category": "Identity & Access",
+    "description": "Interactive user sign-in events from Microsoft Entra ID including MFA, conditional access, and location",
+    "keywords": [
+      "sign-in",
+      "login",
+      "authentication",
+      "entra",
+      "aad",
+      "mfa",
+      "conditional access",
+      "identity"
+    ],
+    "mitreSources": [
+      "User Account: Authentication",
+      "Logon Session: Logon Session Creation"
+    ],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "AuditLogs",
+    "connector": "Microsoft Entra ID",
+    "classification": "primary",
+    "category": "Identity & Access",
+    "description": "Entra ID directory audit events including user, group, role, and application changes",
+    "keywords": [
+      "audit",
+      "entra",
+      "aad",
+      "directory",
+      "role",
+      "group",
+      "application",
+      "identity"
+    ],
+    "mitreSources": [
+      "User Account: User Account Modification",
+      "Active Directory: Active Directory Object Modification",
+      "Group: Group Modification"
+    ],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "AADRiskyUsers",
+    "connector": "Microsoft Entra ID Identity Protection",
+    "classification": "primary",
+    "category": "Identity & Access",
+    "description": "Users flagged as risky by Entra ID Identity Protection based on aggregated risk signals",
+    "keywords": [
+      "risky",
+      "users",
+      "identity protection",
+      "entra",
+      "aad",
+      "risk",
+      "compromise"
+    ],
+    "mitreSources": [
+      "User Account: Authentication"
+    ],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "AADUserRiskEvents",
+    "connector": "Microsoft Entra ID Identity Protection",
+    "classification": "primary",
+    "category": "Identity & Access",
+    "description": "Individual risk detection events such as leaked credentials, anonymous IP sign-ins, and impossible travel",
+    "keywords": [
+      "risk",
+      "events",
+      "identity protection",
+      "leaked credentials",
+      "impossible travel",
+      "entra",
+      "aad"
+    ],
+    "mitreSources": [
+      "User Account: Authentication"
+    ],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "SecurityAlert",
+    "connector": "Microsoft Sentinel (various)",
+    "classification": "primary",
+    "category": "Security Alerts",
+    "description": "Aggregated security alerts from all connected Microsoft and third-party providers",
+    "keywords": [
+      "alerts",
+      "detections",
+      "incidents",
+      "security",
+      "sentinel"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": true,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "SecurityIncident",
+    "connector": "Microsoft Sentinel",
+    "classification": "primary",
+    "category": "Security Alerts",
+    "description": "Sentinel incidents created from correlated alerts and manual escalation",
+    "keywords": [
+      "incidents",
+      "cases",
+      "sentinel",
+      "triage",
+      "soc"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": true,
+    "recommendedRetentionDays": 365,
+    "platform": true,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "AzureActivity",
+    "connector": "Azure Activity Log",
+    "classification": "primary",
+    "category": "Cloud Control Plane",
+    "description": "Azure subscription-level management events including resource CRUD, RBAC changes, and service health",
+    "keywords": [
+      "azure",
+      "activity",
+      "arm",
+      "management",
+      "resource",
+      "rbac",
+      "control plane"
+    ],
+    "mitreSources": [
+      "Cloud Service: Cloud Service Modification"
+    ],
+    "recommendedTier": "analytics",
+    "isFree": true,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "OfficeActivity",
+    "connector": "Microsoft 365",
+    "classification": "primary",
+    "category": "Cloud Control Plane",
+    "description": "Office 365 audit events covering Exchange, SharePoint, OneDrive, and Teams user and admin activities",
+    "keywords": [
+      "office",
+      "365",
+      "sharepoint",
+      "exchange",
+      "teams",
+      "onedrive",
+      "audit"
+    ],
+    "mitreSources": [
+      "Application Log: Application Log Content"
+    ],
+    "recommendedTier": "analytics",
+    "isFree": true,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "MicrosoftGraphActivityLogs",
+    "connector": "Microsoft Graph Activity Logs",
+    "classification": "primary",
+    "category": "Identity & Access",
+    "description": "Microsoft Graph API request activity logs showing API calls made by applications and users",
+    "keywords": [
+      "graph",
+      "api",
+      "activity",
+      "microsoft",
+      "application",
+      "request"
+    ],
+    "mitreSources": [
+      "Application Log: Application Log Content"
+    ],
+    "recommendedTier": "datalake",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "AzureDiagnostics",
+    "connector": "Azure Diagnostic Settings (legacy Azure Diagnostics mode)",
+    "classification": "secondary",
+    "category": "Infrastructure Diagnostics",
+    "description": "Consolidated diagnostic logs from Azure resources including Key Vault, SQL, App Gateway, and more. Legacy collection mode with a 500-column cap; prefer resource-specific tables (AZFW*, AGW*, AKS*, AZKVAuditLogs) where the service offers them",
+    "keywords": [
+      "diagnostics",
+      "azure",
+      "resource",
+      "key vault",
+      "sql",
+      "app gateway"
+    ],
+    "mitreSources": [
+      "Cloud Service: Cloud Service Modification"
+    ],
+    "recommendedTier": "datalake",
+    "isFree": false,
+    "recommendedRetentionDays": 90,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "AZKVAuditLogs",
+    "connector": "Azure Key Vault",
+    "classification": "primary",
+    "category": "Cloud Control Plane",
+    "description": "Azure Key Vault data plane audit events for secret, key and certificate operations with caller identity and result",
+    "keywords": [
+      "key",
+      "vault",
+      "secret",
+      "certificate",
+      "audit",
+      "access"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "AZFWThreatIntel",
+    "connector": "Azure Firewall",
+    "classification": "primary",
+    "category": "Network Security",
+    "description": "Azure Firewall threat intelligence hits indicating known malicious IP/domain connections",
+    "keywords": [
+      "firewall",
+      "threat intelligence",
+      "azure firewall",
+      "malicious",
+      "ioc"
+    ],
+    "mitreSources": [
+      "Network Traffic: Network Traffic Flow"
+    ],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "AGWFirewallLogs",
+    "connector": "Azure Application Gateway WAF",
+    "classification": "primary",
+    "category": "Network Security",
+    "description": "Azure Application Gateway WAF logs with OWASP rule matches, blocked requests, and web attack detections",
+    "keywords": [
+      "application gateway",
+      "waf",
+      "firewall",
+      "owasp",
+      "sql injection",
+      "xss",
+      "web attack"
+    ],
+    "mitreSources": [
+      "Network Traffic: Network Traffic Content"
+    ],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "StorageBlobLogs",
+    "connector": "Azure Storage Account",
+    "classification": "secondary",
+    "category": "Storage Access",
+    "description": "Azure Blob Storage access logs including read, write, and delete operations on blobs and containers",
+    "keywords": [
+      "storage",
+      "blob",
+      "access",
+      "azure",
+      "data",
+      "exfiltration"
+    ],
+    "mitreSources": [
+      "Cloud Storage: Cloud Storage Access"
+    ],
+    "recommendedTier": "datalake",
+    "isFree": false,
+    "recommendedRetentionDays": 180,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "SQLSecurityAuditEvents",
+    "connector": "Azure SQL Database",
+    "classification": "primary",
+    "category": "Data Platform",
+    "description": "Azure SQL Database and Managed Instance auditing events with statement, principal, client IP and success flag",
+    "keywords": [
+      "sql",
+      "database",
+      "audit",
+      "statement",
+      "login",
+      "principal"
+    ],
+    "mitreSources": [],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 180,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  },
+  {
+    "tableName": "BehaviorAnalytics",
+    "connector": "Microsoft Sentinel UEBA",
+    "classification": "primary",
+    "category": "Identity & Access",
+    "description": "User and Entity Behavior Analytics results showing anomalous activities and risk scores",
+    "keywords": [
+      "ueba",
+      "behavior",
+      "analytics",
+      "anomaly",
+      "risk",
+      "user"
+    ],
+    "mitreSources": [
+      "User Account: Authentication"
+    ],
+    "recommendedTier": "analytics",
+    "isFree": false,
+    "recommendedRetentionDays": 365,
+    "sourceIds": [
+      "log-horizon-classifications"
+    ]
+  }
+]

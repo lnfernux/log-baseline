@@ -38,6 +38,7 @@ function Invoke-Validation {
 function New-Fixture {
     $fixtureRoot = Join-Path ([System.IO.Path]::GetTempPath()) "log-baseline-test-$([guid]::NewGuid().ToString('N'))"
     New-Item -ItemType Directory -Path $fixtureRoot | Out-Null
+    Copy-Item -LiteralPath (Join-Path $root 'baselines') -Destination $fixtureRoot -Recurse
     Copy-Item -LiteralPath (Join-Path $root 'data') -Destination $fixtureRoot -Recurse
     Copy-Item -LiteralPath (Join-Path $root 'schemas') -Destination $fixtureRoot -Recurse
     return $fixtureRoot
@@ -114,6 +115,9 @@ try {
             $entryNames = @($archiveEntries.Entries.FullName)
             Assert-Test ('data/taxonomy.json' -in $entryNames) 'Release artifact omitted data/taxonomy.json'
             Assert-Test ('data/sources.json' -in $entryNames) 'Release artifact omitted data/sources.json'
+            Assert-Test ('baselines/minimum.json' -in $entryNames) 'Release artifact omitted baselines/minimum.json'
+            Assert-Test ('baselines/recommended.json' -in $entryNames) 'Release artifact omitted baselines/recommended.json'
+            Assert-Test ('baselines/plus.json' -in $entryNames) 'Release artifact omitted baselines/plus.json'
             Assert-Test ('schemas/sources.schema.json' -in $entryNames) 'Release artifact omitted schemas/sources.schema.json'
         }
         finally {

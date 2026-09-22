@@ -3,7 +3,7 @@
   "$id": "https://github.com/lnfernux/log-baseline/schemas/manifest.schema.json",
   "title": "Log baseline release manifest",
   "type": "object",
-  "required": ["schemaVersion", "dataVersion", "importedOn", "source", "files"],
+  "required": ["schemaVersion", "dataVersion", "importedOn", "source", "files", "baselines"],
   "properties": {
     "schemaVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
     "dataVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
@@ -31,6 +31,12 @@
         "taxonomy.json",
         "sources.json"
       ],
+      "propertyNames": { "pattern": "^[A-Za-z0-9][A-Za-z0-9.-]*\\.json$" },
+      "additionalProperties": { "type": "string", "pattern": "^[A-F0-9]{64}$" }
+    },
+    "baselines": {
+      "type": "object",
+      "required": ["minimum.json", "recommended.json", "plus.json"],
       "propertyNames": { "pattern": "^[A-Za-z0-9][A-Za-z0-9.-]*\\.json$" },
       "additionalProperties": { "type": "string", "pattern": "^[A-F0-9]{64}$" }
     }

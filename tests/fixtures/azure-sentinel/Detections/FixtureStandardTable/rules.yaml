@@ -1,0 +1,17 @@
+id: fixture-standard-one
+query: |
+  FixtureStandardTable
+  | where SourceAddress == "192.0.2.1"
+  | project TimeGenerated, SourceAddress, DestinationAddress
+---
+id: fixture-standard-two
+query: |
+  FixtureStandardTable
+  | where DestinationAddress == "198.51.100.1"
+  | project TimeGenerated, SourceAddress, DestinationAddress
+---
+id: fixture-standard-three
+query: |
+  FixtureStandardTable
+  | where isnotempty(SourceAddress)
+  | project TimeGenerated, SourceAddress, DestinationAddress
