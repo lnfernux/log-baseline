@@ -114,7 +114,7 @@ Both documents rank logs for collection. Neither prescribes a storage tier. ACSC
 | C8 | Behavior analytics, threat intelligence, and identity inventory used by detections | - | 1a identity attributes |
 | C9 | Secondary: health, performance, metrics, diagnostics, inventory, posture snapshots, reference data, and aggregates derived from another collected table | - | - |
 
-C8 and the detection pipeline health part of C1 are baseline judgment. Neither document names UEBA, threat intelligence, or Sentinel health tables.
+C8 and the detection pipeline health part of C1 are baseline judgment. Neither document names UEBA or Sentinel health tables. ACSC mentions threat intelligence only as something to correlate high-volume firewall logs against, and its risk considerations say the health of higher priority data sources should be checked regularly.
 
 ### Tier rules
 
@@ -128,13 +128,13 @@ The first matching rule wins.
 | T3 | Data lake | Primary, high or very-high volume, and the generic detection use is aggregation, threat-intelligence matching, baselining, or investigation. |
 | T4 | Data lake | Low-touch context queried during investigations rather than for alerting. |
 
-T3 relies on [KQL jobs](https://learn.microsoft.com/azure/sentinel/datalake/kql-jobs) and summary rules. Data lake ingestion latency is up to 15 minutes, a scheduled job starts at least 30 minutes after it is created, and a tenant can run 5 jobs concurrently with 100 enabled. Tables where some rows need T1 and the rest fit T3 are split candidates: a transformation sends the matching rows to Analytics and the rest to the lake.
+T3 relies on [KQL jobs](https://learn.microsoft.com/azure/sentinel/datalake/kql-jobs) and summary rules. Data lake ingestion latency is up to 15 minutes, a scheduled job starts at least 30 minutes after it is created, and a tenant can run 5 jobs concurrently with 100 enabled. Tables where some rows need T1 and the rest fit T3 are split candidates. A [split transformation](https://learn.microsoft.com/azure/sentinel/transformation-filter-split#split-transformations) keeps the matching rows in Analytics, where they are also mirrored to the lake, and sends the rest to a separate `_SPLT` table in the lake.
 
 ### Plan support
 
 The data lake tier does not support every table. T3 and T4 apply only when the [Azure Monitor table feature matrix](https://learn.microsoft.com/azure/azure-monitor/reference/tables-features) lists Auxiliary/Lake support for the table (`data/auxiliary-plan-tables.json`), or when the table is a DCR-based custom table (`_CL`). Every other table that would land in the lake gets `analytics` with rule T5. For those tables, long-term retention uses the mirrored lake copy, and volume is reduced with ingest-time filtering or a narrower collection scope. `scripts/Test-Baseline.ps1` rejects a `datalake` recommendation for a built-in table without Auxiliary/Lake support.
 
-Classic custom tables created by the HTTP Data Collector API must be migrated to DCR-based tables before they can use the lake.
+Microsoft documents that [DCR-based custom tables support all plans](https://learn.microsoft.com/azure/azure-monitor/logs/logs-table-plans#set-the-table-plan). Classic custom tables created by the HTTP Data Collector API are not DCR-based, so [migrate them to DCR-based tables](https://learn.microsoft.com/azure/azure-monitor/logs/custom-logs-migrate) before planning a move to the lake. Support for the HTTP Data Collector API ended on September 14, 2026.
 
 ### Classification and tier matrix
 
