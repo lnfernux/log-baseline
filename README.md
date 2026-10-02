@@ -41,7 +41,7 @@ The initial data was migrated without semantic changes from [Log Horizon](https:
 **The repository was created and is maintained with AI assistance:**
 
 1. Mapped out all current log sources from the data sources below (data connectors reference, the Azure-Sentinel repo and a live tenant).
-2. Author (that's me, hi) mapped out a set of around 50 connectors in the JSON-schema manually and provided context as to why I chose that. In two cases I classified wrongly on purpose, this will make sense later.
+2. Author (that's me, hi) mapped out a set of around 50 connectors in the JSON-schema manually and provided context as to why I chose that.
 3. AI (an specialized agent) with access to Microsoft Learn MCP and Defender MCP along with web-search was provided with the task of:
    * Using the classification sources to validate my current set of manual classifications and find any that didn't make sense.
    * After validating and generating a set of rules based on my input, classification sources and the run over the pre-classified data, it ran on the rest of the data.
