@@ -15,16 +15,16 @@ Record source URLs and observation dates. A missing statement is not evidence fo
 
 The value rules apply two public documents. Both rank logs for collection. Neither prescribes a storage tier.
 
-- **ASD**: [ASD's ACSC priority logs for SIEM ingestion](https://www.cyber.gov.au/business-government/detecting-responding-to-threats/event-logging/implementing-siem-soar-platforms/priority-logs-for-siem-ingestion-practitioner-guidance), sections 1 to 14.
+- **ACSC**: [Australian Cyber Security Centre (ACSC) priority logs for SIEM ingestion](https://www.cyber.gov.au/business-government/detecting-responding-to-threats/event-logging/implementing-siem-soar-platforms/priority-logs-for-siem-ingestion-practitioner-guidance), sections 1 to 14.
 - **CISA**: [CISA guidance for implementing M-21-31](https://www.cisa.gov/sites/default/files/2023-02/TLP%20CLEAR%20-%20Guidance%20for%20Implementing%20M-21-31_Improving%20the%20Federal%20Governments%20Investigative%20and%20Remediation%20Capabilities_.pdf), prioritized event types 1 to 8.
 
-Every record stores the rule that placed it: `valueRule` (C1 to C9) and `tierRule` (T1 to T5). Cite both IDs and the matching ASD section or CISA item in every proposal.
+Every record stores the rule that placed it: `valueRule` (C1 to C9) and `tierRule` (T1 to T5). Cite both IDs and the matching ACSC section or CISA item in every proposal.
 
 ## Classification
 
 Decide security value first. Pick exactly one value rule. When several fit, pick the rule that describes the record type a detection would match on.
 
-| Rule | Classification | The table records | ASD | CISA |
+| Rule | Classification | The table records | ACSC | CISA |
 | --- | --- | --- | --- | --- |
 | C1 | primary | Detections, alerts, incidents, security findings (vulnerability and posture findings), and detection pipeline health | 1 EDR detections, 2 IDS/IPS alerts, risk considerations (check the health of priority sources) | - |
 | C2 | primary | Authentication and credential use: interactive, non-interactive, service principal, managed identity, federated, VPN, NAC, and password vault access | 2 VPN/NAC, 3-4 domain controllers, 8 Entra sign-in logs | 1b |

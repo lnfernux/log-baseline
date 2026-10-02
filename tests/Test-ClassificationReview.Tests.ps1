@@ -27,6 +27,7 @@ try {
     foreach ($directory in 'baselines', 'data', 'schemas', 'scripts') {
         Copy-Item -LiteralPath (Join-Path $root $directory) -Destination $fixtureRoot -Recurse
     }
+    $dataVersion = (Get-Content -LiteralPath (Join-Path $fixtureRoot 'data' 'manifest.json') -Raw | ConvertFrom-Json).dataVersion
 
     $candidatePath = Join-Path $fixtureRoot 'candidates.json'
     $decisionPath = Join-Path $fixtureRoot 'decisions.json'
@@ -67,7 +68,7 @@ try {
         -DecisionsPath $decisionPath `
         -AzureSentinelRevision ('a' * 40) `
         -ObservedOn ([datetime]'2026-09-22') `
-        -DataVersion '0.3.0' `
+        -DataVersion $dataVersion `
         -RootPath $fixtureRoot | Out-Null
 
     $classifications = @(Get-Content -LiteralPath (Join-Path $fixtureRoot 'data' 'log-classifications.json') -Raw | ConvertFrom-Json)
@@ -76,7 +77,7 @@ try {
     Assert-Test ($imported[0].recommendedTier -eq 'datalake') 'Structured edit was not applied'
 
     $manifest = Get-Content -LiteralPath (Join-Path $fixtureRoot 'data' 'manifest.json') -Raw | ConvertFrom-Json
-    Assert-Test ($manifest.dataVersion -eq '0.3.0') 'Data version was not updated'
+    Assert-Test ($manifest.dataVersion -eq $dataVersion) 'Data version was not updated'
     Assert-Test ($manifest.files.'log-classifications.json' -eq (Get-FileHash -LiteralPath (Join-Path $fixtureRoot 'data' 'log-classifications.json') -Algorithm SHA256).Hash) 'Classification checksum was not updated'
 
     $sources = Get-Content -LiteralPath (Join-Path $fixtureRoot 'data' 'sources.json') -Raw | ConvertFrom-Json
@@ -107,7 +108,7 @@ try {
         -DecisionsPath $decisionPath `
         -ReviewedSourcesPath $sourcesFixturePath `
         -ObservedOn ([datetime]'2026-10-02') `
-        -DataVersion '0.3.0' `
+        -DataVersion $dataVersion `
         -RootPath $fixtureRoot | Out-Null
 
     $after = @(Get-Content -LiteralPath (Join-Path $fixtureRoot 'data' 'log-classifications.json') -Raw | ConvertFrom-Json)
@@ -124,7 +125,7 @@ try {
     Write-JsonFixture -Path $decisionPath -Value ([ordered]@{ decisions = @([ordered]@{ tableName = 'MissingTable_CL'; decision = 'accept' }) })
     $rejected = $false
     try {
-        & (Join-Path $root 'scripts' 'Import-ClassificationReview.ps1') -CandidatesPath $candidatePath -DecisionsPath $decisionPath -ObservedOn ([datetime]'2026-10-02') -DataVersion '0.3.0' -RootPath $fixtureRoot | Out-Null
+        & (Join-Path $root 'scripts' 'Import-ClassificationReview.ps1') -CandidatesPath $candidatePath -DecisionsPath $decisionPath -ObservedOn ([datetime]'2026-10-02') -DataVersion $dataVersion -RootPath $fixtureRoot | Out-Null
     }
     catch { $rejected = $_.Exception.Message -match 'no existing classification' }
     Assert-Test $rejected 'Changed candidate without an existing record was accepted'

@@ -95,14 +95,14 @@ Each table gets two independent recommendations. `classification` records securi
 
 The value rules apply two select public guidance documents for simplicity's sake:
 
-- **ASD**: [ASD's ACSC priority logs for SIEM ingestion](https://www.cyber.gov.au/business-government/detecting-responding-to-threats/event-logging/implementing-siem-soar-platforms/priority-logs-for-siem-ingestion-practitioner-guidance), sections 1 to 14.
+- **ACSC**: [Australian Cyber Security Centre (ACSC) priority logs for SIEM ingestion](https://www.cyber.gov.au/business-government/detecting-responding-to-threats/event-logging/implementing-siem-soar-platforms/priority-logs-for-siem-ingestion-practitioner-guidance), sections 1 to 14.
 - **CISA**: [CISA guidance for implementing M-21-31](https://www.cisa.gov/sites/default/files/2023-02/TLP%20CLEAR%20-%20Guidance%20for%20Implementing%20M-21-31_Improving%20the%20Federal%20Governments%20Investigative%20and%20Remediation%20Capabilities_.pdf), the prioritized event types 1 to 8.
 
-Both documents rank logs for collection. Neither prescribes a storage tier. ASD notes that firewall and DNS volume *"may overshadow the importance of the information received"* and discourages using a SIEM as the central store for all logs. The tier rules come from that point and from documented Microsoft Sentinel data lake behavior.
+Both documents rank logs for collection. Neither prescribes a storage tier. ACSC notes that firewall and DNS volume *"may overshadow the importance of the information received"* and discourages using a SIEM as the central store for all logs. The tier rules come from that point and from documented Microsoft Sentinel data lake behavior.
 
 ### Value rules
 
-| Rule | Primary when the table records | ASD | CISA |
+| Rule | Primary when the table records | ACSC | CISA |
 | --- | --- | --- | --- |
 | C1 | Detections, alerts, incidents, security findings (vulnerability and posture findings), and detection pipeline health | 1 EDR detections, 2 IDS/IPS alerts, risk considerations (check the health of priority sources) | - |
 | C2 | Authentication and credential use, including non-interactive, service principal, managed identity, federated, VPN, NAC, and password vault access | 2 VPN/NAC, 3-4 domain controllers, 8 Entra sign-in logs | 1b |
