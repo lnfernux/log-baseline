@@ -36,7 +36,7 @@ Decide security value first. Pick exactly one value rule. When several fit, pick
 | C8 | primary | Behavior analytics, threat intelligence, and identity inventory used by detections | - | 1a identity attributes |
 | C9 | secondary | Health, performance, metrics, diagnostics, inventory, posture snapshots, reference data, and aggregates derived from another collected table | - | - |
 
-C8 and the detection pipeline health part of C1 are baseline judgment. Neither document names UEBA, threat intelligence, or Sentinel health tables.
+C8 and the detection pipeline health part of C1 are baseline judgment. Neither document names UEBA or Sentinel health tables. ACSC mentions threat intelligence only as something to correlate high-volume firewall logs against, and its risk considerations say the health of higher priority data sources should be checked regularly.
 
 Do not infer `primary` from high query frequency alone. Do not infer `secondary` from low public rule coverage alone. Never use volume or cost to choose `secondary`. Volume belongs in the tier and volume fields.
 
@@ -56,9 +56,9 @@ Decide the tier second, in this order. The first matching rule wins.
 | 4 | T3 | datalake | Primary, `volumeClass` high or very-high, and the generic detection use is aggregation, threat-intelligence matching, baselining, or investigation that KQL jobs and summary rules support. |
 | 5 | T4 | datalake | Low-touch context queried during investigations rather than for alerting. |
 
-Tier support is a documented platform fact. Security value is a judgment. Keep them separate. Never recommend an unsupported plan. DCR-based custom tables (`_CL`) support all plans. Classic custom tables from the HTTP Data Collector API must be migrated before they can use the lake, so state that in the proposal context.
+Tier support is a documented platform fact. Security value is a judgment. Keep them separate. Never recommend an unsupported plan. DCR-based custom tables (`_CL`) support all plans. Classic custom tables from the HTTP Data Collector API are not DCR-based, so state in the proposal context that they need migrating to DCR-based tables before a move to the lake. Support for the HTTP Data Collector API ended on September 14, 2026.
 
-For T5 tables, the proposal context states that long-term retention uses the mirrored lake copy and that volume is reduced with ingest-time filtering or collection scope. For T3 tables with some single-event detections, note the split pattern: a transformation sends the matching rows to analytics and the rest to the lake.
+For T5 tables, the proposal context states that long-term retention uses the mirrored lake copy and that volume is reduced with ingest-time filtering or collection scope. For T3 tables with some single-event detections, note the split pattern: a split transformation keeps the matching rows in analytics, mirrored to the lake, and sends the rest to a separate `_SPLT` table in the lake.
 
 Data lake constraints for T3: ingestion latency up to 15 minutes, scheduled KQL jobs start at least 30 minutes after creation, 5 concurrent jobs and 100 enabled jobs per tenant, 1-hour query timeout ([KQL jobs](https://learn.microsoft.com/azure/sentinel/datalake/kql-jobs)).
 
