@@ -175,10 +175,28 @@ foreach ($tableOverride in $taxonomy.tableOverrides.PSObject.Properties) {
     Assert-Baseline ($tableOverride.Name -in $tableNames) "Taxonomy override references unknown table: $($tableOverride.Name)"
 }
 
+$auxiliaryPlan = Read-BaselineJson (Join-Path $dataPath 'auxiliary-plan-tables.json')
+$lakeTables = [System.Collections.Generic.HashSet[string]]::new([string[]]@($auxiliaryPlan.tables), [System.StringComparer]::Ordinal)
+
 foreach ($entry in $classifications) {
     Assert-Baseline ($entry.classification -in @('primary', 'secondary')) "$($entry.tableName): invalid classification"
     Assert-Baseline ($entry.category -in $allowedCategories) "$($entry.tableName): invalid category"
     Assert-Baseline ($entry.recommendedTier -in @('analytics', 'datalake')) "$($entry.tableName): invalid recommended tier"
+    if ($entry.recommendedTier -eq 'datalake' -and $entry.tableName -notlike '*_CL') {
+        Assert-Baseline $lakeTables.Contains([string]$entry.tableName) "$($entry.tableName): datalake recommended but the table has no Auxiliary/Lake support"
+    }
+    Assert-Baseline (@('volumeClass', 'volumeDriver' | Where-Object { $entry.PSObject.Properties.Name -notcontains $_ }).Count -eq 0) "$($entry.tableName): volumeClass and volumeDriver are required"
+    $hasRules = @('valueRule', 'tierRule' | Where-Object { $entry.PSObject.Properties.Name -notcontains $_ }).Count -eq 0
+    Assert-Baseline $hasRules "$($entry.tableName): valueRule and tierRule are required"
+    if ($hasRules) {
+        Assert-Baseline (($entry.valueRule -eq 'C9') -eq ($entry.classification -eq 'secondary')) "$($entry.tableName): valueRule $($entry.valueRule) does not match classification $($entry.classification)"
+        $expectedTier = if ($entry.tierRule -in 'T3', 'T4') { 'datalake' } else { 'analytics' }
+        Assert-Baseline ($expectedTier -eq $entry.recommendedTier) "$($entry.tableName): tierRule $($entry.tierRule) does not match recommendedTier $($entry.recommendedTier)"
+        Assert-Baseline (-not ($entry.valueRule -eq 'C9' -and $entry.tierRule -in 'T1', 'T3')) "$($entry.tableName): secondary tables cannot use $($entry.tierRule)"
+        if ($entry.tierRule -eq 'T5') {
+            Assert-Baseline ($entry.tableName -notlike '*_CL' -and -not $lakeTables.Contains([string]$entry.tableName)) "$($entry.tableName): T5 requires a built-in table without Auxiliary/Lake support"
+        }
+    }
     Assert-Baseline ($entry.recommendedRetentionDays -in @(90, 180, 365)) "$($entry.tableName): invalid retention"
     foreach ($sourceId in @($entry.sourceIds)) {
         Assert-Baseline ($sourceId -in $sourceIds) "$($entry.tableName): unknown source ID $sourceId"

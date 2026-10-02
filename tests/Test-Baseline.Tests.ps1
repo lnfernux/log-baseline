@@ -95,6 +95,36 @@ try {
 
     $fixture = New-Fixture
     $temporaryPaths.Add($fixture)
+    $classificationsPath = Join-Path $fixture 'data' 'log-classifications.json'
+    $classifications = @(Get-Content -LiteralPath $classificationsPath -Raw | ConvertFrom-Json)
+    @($classifications | Where-Object tableName -eq 'Perf')[0].recommendedTier = 'datalake'
+    Write-FixtureJson -Path $classificationsPath -Value $classifications
+    & (Join-Path $root 'scripts' 'Update-Manifest.ps1') -RootPath $fixture | Out-Null
+    $unsupportedLake = Invoke-Validation -FixtureRoot $fixture
+    Assert-Test ($unsupportedLake.ExitCode -ne 0) 'Datalake recommendation without Auxiliary/Lake support was accepted'
+
+    $fixture = New-Fixture
+    $temporaryPaths.Add($fixture)
+    $classificationsPath = Join-Path $fixture 'data' 'log-classifications.json'
+    $classifications = @(Get-Content -LiteralPath $classificationsPath -Raw | ConvertFrom-Json)
+    $classifications[0].PSObject.Properties.Remove('volumeClass')
+    Write-FixtureJson -Path $classificationsPath -Value $classifications
+    & (Join-Path $root 'scripts' 'Update-Manifest.ps1') -RootPath $fixture | Out-Null
+    $missingVolume = Invoke-Validation -FixtureRoot $fixture
+    Assert-Test ($missingVolume.ExitCode -ne 0) 'Classification without volumeClass was accepted'
+
+    $fixture = New-Fixture
+    $temporaryPaths.Add($fixture)
+    $classificationsPath = Join-Path $fixture 'data' 'log-classifications.json'
+    $classifications = @(Get-Content -LiteralPath $classificationsPath -Raw | ConvertFrom-Json)
+    @($classifications | Where-Object tableName -eq 'SigninLogs')[0].tierRule = 'T3'
+    Write-FixtureJson -Path $classificationsPath -Value $classifications
+    & (Join-Path $root 'scripts' 'Update-Manifest.ps1') -RootPath $fixture | Out-Null
+    $mismatchedRule = Invoke-Validation -FixtureRoot $fixture
+    Assert-Test ($mismatchedRule.ExitCode -ne 0) 'Tier rule that contradicts recommendedTier was accepted'
+
+    $fixture = New-Fixture
+    $temporaryPaths.Add($fixture)
     [System.IO.File]::WriteAllText((Join-Path $fixture 'data' 'untracked.json'), "{}`n", [System.Text.UTF8Encoding]::new($false))
     $untrackedData = Invoke-Validation -FixtureRoot $fixture
     Assert-Test ($untrackedData.ExitCode -ne 0) 'Untracked data JSON file was accepted'

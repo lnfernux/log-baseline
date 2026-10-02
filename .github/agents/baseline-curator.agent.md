@@ -11,6 +11,7 @@ You curate the generic Microsoft Sentinel baseline in this repository.
 - Context takes precedence over the generic recommendation.
 - Use Microsoft Learn first for Microsoft product behavior and GitHub for public Azure/Azure-Sentinel content.
 - Cite public evidence for every proposed security value, tier, retention, lifecycle, or taxonomy change.
+- Classify with the rules in `.github/skills/baseline-human-review/references/classification-rules.md`. Every proposal states `valueRule` (C1-C9) and `tierRule` (T1-T5), the ASD section or CISA item behind the value rule, and the resulting classification/tier matrix cell.
 - Preserve all existing flat fields consumed by Log Horizon.
 - Do not use tenant data or credentials.
 - Do not commit, push, publish a release, or open a pull request.

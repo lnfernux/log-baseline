@@ -36,11 +36,15 @@ try {
             tableName = 'FixtureReviewed_CL'
             connector = 'Fixture connector'
             classification = 'secondary'
+            valueRule = 'C9'
             category = 'Infrastructure Diagnostics'
             description = 'Fixture record for classification review import testing'
             keywords = @('fixture', 'review')
             mitreSources = @()
             recommendedTier = 'analytics'
+            tierRule = 'T2'
+            volumeClass = 'low'
+            volumeDriver = 'application-trace'
             isFree = $false
             recommendedRetentionDays = 180
             domainId = 'infrastructure-platform'
@@ -52,7 +56,7 @@ try {
         decisions = @([ordered]@{
             tableName = 'FixtureReviewed_CL'
             decision = 'edit'
-            changes = [ordered]@{ recommendedTier = 'datalake' }
+            changes = [ordered]@{ recommendedTier = 'datalake'; tierRule = 'T4' }
         })
     }
     Write-JsonFixture -Path $candidatePath -Value $candidate
@@ -79,6 +83,51 @@ try {
     $source = @($sources.sources | Where-Object id -eq 'azure-sentinel-rule-corpus')
     Assert-Test ($source[0].revision -eq ('a' * 40)) 'Source revision was not updated'
     Assert-Test (@($source[0].appliesTo) -contains 'log-classifications.json') 'Classification provenance was not linked'
+
+    $before = @(Get-Content -LiteralPath (Join-Path $fixtureRoot 'data' 'log-classifications.json') -Raw | ConvertFrom-Json)
+    $changed = ($before | Where-Object tableName -eq 'SigninLogs' | ConvertTo-Json -Depth 30 | ConvertFrom-Json)
+    $changed | Add-Member -NotePropertyName volumeClass -NotePropertyValue 'very-high' -Force
+    $changed | Add-Member -NotePropertyName volumeDriver -NotePropertyValue 'sign-in' -Force
+    $changed.sourceIds = @($changed.sourceIds + 'fixture-guidance')
+    $sourcesFixturePath = Join-Path $fixtureRoot 'sources-additions.json'
+    Write-JsonFixture -Path $candidatePath -Value @([ordered]@{ tableName = 'SigninLogs'; status = 'changed'; proposed = $changed })
+    Write-JsonFixture -Path $decisionPath -Value ([ordered]@{ decisions = @([ordered]@{ tableName = 'SigninLogs'; decision = 'accept' }) })
+    Write-JsonFixture -Path $sourcesFixturePath -Value @([ordered]@{
+        id = 'fixture-guidance'
+        title = 'Fixture guidance'
+        url = 'https://example.com/guidance'
+        revision = 'fixture'
+        observedOn = '2026-10-02'
+        appliesTo = @('log-classifications.json')
+        scope = 'Fixture source for changed-record import testing.'
+    })
+
+    & (Join-Path $root 'scripts' 'Import-ClassificationReview.ps1') `
+        -CandidatesPath $candidatePath `
+        -DecisionsPath $decisionPath `
+        -ReviewedSourcesPath $sourcesFixturePath `
+        -ObservedOn ([datetime]'2026-10-02') `
+        -DataVersion '0.3.0' `
+        -RootPath $fixtureRoot | Out-Null
+
+    $after = @(Get-Content -LiteralPath (Join-Path $fixtureRoot 'data' 'log-classifications.json') -Raw | ConvertFrom-Json)
+    $replaced = @($after | Where-Object tableName -eq 'SigninLogs')
+    Assert-Test ($after.Count -eq $before.Count) 'Changed record import altered the classification count'
+    Assert-Test ($replaced.Count -eq 1 -and $replaced[0].volumeClass -eq 'very-high') 'Changed record was not replaced in place'
+    $sources = Get-Content -LiteralPath (Join-Path $fixtureRoot 'data' 'sources.json') -Raw | ConvertFrom-Json
+    Assert-Test (@($sources.sources | Where-Object id -eq 'fixture-guidance').Count -eq 1) 'Reviewed source record was not added'
+    Assert-Test (@($sources.sources | Where-Object id -eq 'azure-sentinel-rule-corpus')[0].revision -eq ('a' * 40)) 'Azure-Sentinel provenance changed without a revision'
+    $minimum = @(Get-Content -LiteralPath (Join-Path $fixtureRoot 'baselines' 'minimum.json') -Raw | ConvertFrom-Json)
+    Assert-Test (@($minimum | Where-Object tableName -eq 'SigninLogs')[0].volumeClass -eq 'very-high') 'Pre-made baselines were not regenerated'
+
+    Write-JsonFixture -Path $candidatePath -Value @([ordered]@{ tableName = 'MissingTable_CL'; status = 'changed'; proposed = [ordered]@{ tableName = 'MissingTable_CL' } })
+    Write-JsonFixture -Path $decisionPath -Value ([ordered]@{ decisions = @([ordered]@{ tableName = 'MissingTable_CL'; decision = 'accept' }) })
+    $rejected = $false
+    try {
+        & (Join-Path $root 'scripts' 'Import-ClassificationReview.ps1') -CandidatesPath $candidatePath -DecisionsPath $decisionPath -ObservedOn ([datetime]'2026-10-02') -DataVersion '0.3.0' -RootPath $fixtureRoot | Out-Null
+    }
+    catch { $rejected = $_.Exception.Message -match 'no existing classification' }
+    Assert-Test $rejected 'Changed candidate without an existing record was accepted'
 }
 finally {
     Remove-Item -LiteralPath $fixtureRoot -Recurse -Force -ErrorAction SilentlyContinue

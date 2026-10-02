@@ -11,8 +11,11 @@ Uncertain: no
 ### Current
 
 - Classification: `primary`
+- Value rule: `C1`
 - Category: `Security Alerts`
 - Tier: `analytics`
+- Tier rule: `T1`
+- Volume: `alert` / `low`
 - Retention: `365`
 
 ### Proposed
@@ -26,8 +29,8 @@ No change.
 
 ### Classification judgment
 
-- Security alerts are direct detection and investigation records, satisfying the `primary` rule.
-- Interactive triage and correlation support the `analytics` recommendation.
+- Security alerts are direct detection and investigation records: value rule C1 (ASD 1 EDR detections, ASD 2 IDS/IPS alerts), so `primary`.
+- Interactive triage and correlation need near-real-time access: tier rule T1, so `analytics`. The cell is primary/analytics.
 - Recurring investigations support the generic `365`-day retention recommendation.
 
 ### Context
