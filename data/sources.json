@@ -20,9 +20,10 @@
       "observedOn": "2026-09-06",
       "appliesTo": [
         "auxiliary-plan-tables.json",
-        "basic-plan-tables.json"
+        "basic-plan-tables.json",
+        "log-classifications.json"
       ],
-      "scope": "Built-in table support for the Basic and Auxiliary plans."
+      "scope": "Built-in table support for the Basic and Auxiliary plans. Classifications use it to keep datalake recommendations to tables with Auxiliary/Lake support."
     },
     {
       "id": "azure-sentinel-rule-corpus",
@@ -69,6 +70,72 @@
         "taxonomy.json"
       ],
       "scope": "Repository-maintained mapping from classification categories to generic security domains and log types."
+    },
+    {
+      "id": "acsc-priority-logs-siem",
+      "title": "ASD ACSC Priority logs for SIEM ingestion: Practitioner guidance",
+      "url": "https://www.cyber.gov.au/business-government/detecting-responding-to-threats/event-logging/implementing-siem-soar-platforms/priority-logs-for-siem-ingestion-practitioner-guidance",
+      "revision": "published-2025-05-27",
+      "observedOn": "2026-10-02",
+      "appliesTo": [
+        "log-classifications.json"
+      ],
+      "scope": "Loosely prioritized log categories (EDR, network devices, domain controllers, Windows, virtualisation, cloud, containers, databases, MDM, DNS, Linux, macOS) used by the classification rules. Collection priority, not storage tier."
+    },
+    {
+      "id": "cisa-m-21-31-guidance",
+      "title": "CISA Guidance for Implementing M-21-31",
+      "url": "https://www.cisa.gov/sites/default/files/2023-02/TLP%20CLEAR%20-%20Guidance%20for%20Implementing%20M-21-31_Improving%20the%20Federal%20Governments%20Investigative%20and%20Remediation%20Capabilities_.pdf",
+      "revision": "published-2023-02",
+      "observedOn": "2026-10-02",
+      "appliesTo": [
+        "log-classifications.json"
+      ],
+      "scope": "Prioritized event types for collection and storage (ICAM, operating systems, network infrastructure, cloud, AWS, Azure, Microsoft 365, GCP) used by the classification rules. Collection priority, not storage tier."
+    },
+    {
+      "id": "microsoft-learn-sentinel-data-lake",
+      "title": "Microsoft Sentinel data lake tiers and KQL jobs",
+      "url": "https://learn.microsoft.com/azure/sentinel/datalake/kql-jobs",
+      "revision": "observed-2026-10-02",
+      "observedOn": "2026-10-02",
+      "appliesTo": [
+        "log-classifications.json"
+      ],
+      "scope": "Tier capabilities, data lake ingestion latency, and KQL job limits used by the tier rules."
+    },
+    {
+      "id": "microsoft-learn-table-reference",
+      "title": "Azure Monitor Logs table reference",
+      "url": "https://learn.microsoft.com/azure/azure-monitor/reference/tables-index",
+      "revision": "observed-2026-10-02",
+      "observedOn": "2026-10-02",
+      "appliesTo": [
+        "log-classifications.json"
+      ],
+      "scope": "Table identity, description, and plan support for tables added in the guidance-alignment review."
+    },
+    {
+      "id": "log-baseline-volume-model",
+      "title": "Log Baseline volume model",
+      "url": "https://github.com/lnfernux/log-baseline#volume-model",
+      "revision": "0.3.0-unreleased",
+      "observedOn": "2026-10-02",
+      "appliesTo": [
+        "log-classifications.json"
+      ],
+      "scope": "Judgment-based volume driver and relative volume class per table. Not measured tenant volume."
+    },
+    {
+      "id": "log-baseline-classification-rules",
+      "title": "Log Baseline classification rules",
+      "url": "https://github.com/lnfernux/log-baseline#classification-rules",
+      "revision": "0.3.0-unreleased",
+      "observedOn": "2026-10-02",
+      "appliesTo": [
+        "log-classifications.json"
+      ],
+      "scope": "Value rules C1-C9 mapped to ASD and CISA guidance, and tier rules T1-T5 including plan support. Stored per table as valueRule and tierRule."
     }
   ]
 }

@@ -3,6 +3,7 @@
     "tableName": "SigninLogs",
     "connector": "Microsoft Entra ID",
     "classification": "primary",
+    "valueRule": "C2",
     "category": "Identity & Access",
     "description": "Interactive user sign-in events from Microsoft Entra ID including MFA, conditional access, and location",
     "keywords": [
@@ -20,16 +21,22 @@
       "Logon Session: Logon Session Creation"
     ],
     "recommendedTier": "analytics",
+    "tierRule": "T1",
+    "volumeClass": "medium",
+    "volumeDriver": "sign-in",
     "isFree": false,
     "recommendedRetentionDays": 365,
     "sourceIds": [
-      "log-horizon-classifications"
+      "log-horizon-classifications",
+      "log-baseline-volume-model",
+      "log-baseline-classification-rules"
     ]
   },
   {
     "tableName": "AuditLogs",
     "connector": "Microsoft Entra ID",
     "classification": "primary",
+    "valueRule": "C3",
     "category": "Identity & Access",
     "description": "Entra ID directory audit events including user, group, role, and application changes",
     "keywords": [
@@ -48,16 +55,22 @@
       "Group: Group Modification"
     ],
     "recommendedTier": "analytics",
+    "tierRule": "T1",
+    "volumeClass": "medium",
+    "volumeDriver": "admin-action",
     "isFree": false,
     "recommendedRetentionDays": 365,
     "sourceIds": [
-      "log-horizon-classifications"
+      "log-horizon-classifications",
+      "log-baseline-volume-model",
+      "log-baseline-classification-rules"
     ]
   },
   {
     "tableName": "AADRiskyUsers",
     "connector": "Microsoft Entra ID Identity Protection",
     "classification": "primary",
+    "valueRule": "C1",
     "category": "Identity & Access",
     "description": "Users flagged as risky by Entra ID Identity Protection based on aggregated risk signals",
     "keywords": [
@@ -73,16 +86,22 @@
       "User Account: Authentication"
     ],
     "recommendedTier": "analytics",
+    "tierRule": "T1",
+    "volumeClass": "low",
+    "volumeDriver": "alert",
     "isFree": false,
     "recommendedRetentionDays": 365,
     "sourceIds": [
-      "log-horizon-classifications"
+      "log-horizon-classifications",
+      "log-baseline-volume-model",
+      "log-baseline-classification-rules"
     ]
   },
   {
     "tableName": "AADUserRiskEvents",
     "connector": "Microsoft Entra ID Identity Protection",
     "classification": "primary",
+    "valueRule": "C1",
     "category": "Identity & Access",
     "description": "Individual risk detection events such as leaked credentials, anonymous IP sign-ins, and impossible travel",
     "keywords": [
@@ -98,16 +117,22 @@
       "User Account: Authentication"
     ],
     "recommendedTier": "analytics",
+    "tierRule": "T1",
+    "volumeClass": "low",
+    "volumeDriver": "alert",
     "isFree": false,
     "recommendedRetentionDays": 365,
     "sourceIds": [
-      "log-horizon-classifications"
+      "log-horizon-classifications",
+      "log-baseline-volume-model",
+      "log-baseline-classification-rules"
     ]
   },
   {
     "tableName": "SecurityAlert",
     "connector": "Microsoft Sentinel (various)",
     "classification": "primary",
+    "valueRule": "C1",
     "category": "Security Alerts",
     "description": "Aggregated security alerts from all connected Microsoft and third-party providers",
     "keywords": [
@@ -119,16 +144,22 @@
     ],
     "mitreSources": [],
     "recommendedTier": "analytics",
+    "tierRule": "T1",
+    "volumeClass": "low",
+    "volumeDriver": "alert",
     "isFree": true,
     "recommendedRetentionDays": 365,
     "sourceIds": [
-      "log-horizon-classifications"
+      "log-horizon-classifications",
+      "log-baseline-volume-model",
+      "log-baseline-classification-rules"
     ]
   },
   {
     "tableName": "SecurityIncident",
     "connector": "Microsoft Sentinel",
     "classification": "primary",
+    "valueRule": "C1",
     "category": "Security Alerts",
     "description": "Sentinel incidents created from correlated alerts and manual escalation",
     "keywords": [
@@ -140,17 +171,23 @@
     ],
     "mitreSources": [],
     "recommendedTier": "analytics",
+    "tierRule": "T1",
+    "volumeClass": "low",
+    "volumeDriver": "alert",
     "isFree": true,
     "recommendedRetentionDays": 365,
     "platform": true,
     "sourceIds": [
-      "log-horizon-classifications"
+      "log-horizon-classifications",
+      "log-baseline-volume-model",
+      "log-baseline-classification-rules"
     ]
   },
   {
     "tableName": "AzureActivity",
     "connector": "Azure Activity Log",
     "classification": "primary",
+    "valueRule": "C3",
     "category": "Cloud Control Plane",
     "description": "Azure subscription-level management events including resource CRUD, RBAC changes, and service health",
     "keywords": [
@@ -166,16 +203,22 @@
       "Cloud Service: Cloud Service Modification"
     ],
     "recommendedTier": "analytics",
+    "tierRule": "T1",
+    "volumeClass": "medium",
+    "volumeDriver": "admin-action",
     "isFree": true,
     "recommendedRetentionDays": 365,
     "sourceIds": [
-      "log-horizon-classifications"
+      "log-horizon-classifications",
+      "log-baseline-volume-model",
+      "log-baseline-classification-rules"
     ]
   },
   {
     "tableName": "OfficeActivity",
     "connector": "Microsoft 365",
     "classification": "primary",
+    "valueRule": "C6",
     "category": "Cloud Control Plane",
     "description": "Office 365 audit events covering Exchange, SharePoint, OneDrive, and Teams user and admin activities",
     "keywords": [
@@ -191,10 +234,15 @@
       "Application Log: Application Log Content"
     ],
     "recommendedTier": "analytics",
+    "tierRule": "T1",
+    "volumeClass": "high",
+    "volumeDriver": "activity",
     "isFree": true,
     "recommendedRetentionDays": 365,
     "sourceIds": [
-      "log-horizon-classifications"
+      "log-horizon-classifications",
+      "log-baseline-volume-model",
+      "log-baseline-classification-rules"
     ]
   }
 ]

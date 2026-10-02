@@ -1,8 +1,8 @@
 # Microsoft Sentinel Log Baseline
 
 [![Validate baseline](https://github.com/lnfernux/log-baseline/actions/workflows/validate.yml/badge.svg)](https://github.com/lnfernux/log-baseline/actions/workflows/validate.yml)
-[![Data version](https://img.shields.io/badge/data-0.2.0-00cc00)](CHANGELOG.md)
-[![Schema version](https://img.shields.io/badge/schema-1.1.0-475569)](data/manifest.json)
+[![Data version](https://img.shields.io/badge/data-0.3.0-00cc00)](CHANGELOG.md)
+[![Schema version](https://img.shields.io/badge/schema-1.2.0-475569)](data/manifest.json)
 [![License](https://img.shields.io/badge/license-CC%20BY%204.0%20%2B%20MIT-475569)](LICENSE.md)
 
 > [!IMPORTANT]
@@ -89,6 +89,80 @@ See the [Log Horizon baseline methodology](https://github.com/lnfernux/log-horiz
 
 The plan-support files cover the complete Microsoft table feature matrix, including tables that do not yet have a classification entry. Field-frequency statistics likewise retain tables found in the public rule corpus even when the baseline does not classify them.
 
+## Classification rules
+
+Each table gets two independent recommendations. `classification` records security value. `recommendedTier` records where the data should live, based on volume and how detections use it. Volume never changes the classification. Every record stores the rule behind each recommendation in `valueRule` (C1-C9) and `tierRule` (T1-T5), and `scripts/Test-Baseline.ps1` rejects pairings that contradict the matrix below.
+
+The value rules apply two select public guidance documents for simplicity's sake:
+
+- **ASD**: [ASD's ACSC priority logs for SIEM ingestion](https://www.cyber.gov.au/business-government/detecting-responding-to-threats/event-logging/implementing-siem-soar-platforms/priority-logs-for-siem-ingestion-practitioner-guidance), sections 1 to 14.
+- **CISA**: [CISA guidance for implementing M-21-31](https://www.cisa.gov/sites/default/files/2023-02/TLP%20CLEAR%20-%20Guidance%20for%20Implementing%20M-21-31_Improving%20the%20Federal%20Governments%20Investigative%20and%20Remediation%20Capabilities_.pdf), the prioritized event types 1 to 8.
+
+Both documents rank logs for collection. Neither prescribes a storage tier. ASD notes that firewall and DNS volume *"may overshadow the importance of the information received"* and discourages using a SIEM as the central store for all logs. The tier rules come from that point and from documented Microsoft Sentinel data lake behavior.
+
+### Value rules
+
+| Rule | Primary when the table records | ASD | CISA |
+| --- | --- | --- | --- |
+| C1 | Detections, alerts, incidents, security findings (vulnerability and posture findings), and detection pipeline health | 1 EDR detections, 2 IDS/IPS alerts, risk considerations (check the health of priority sources) | - |
+| C2 | Authentication and credential use, including non-interactive, service principal, managed identity, federated, VPN, NAC, and password vault access | 2 VPN/NAC, 3-4 domain controllers, 8 Entra sign-in logs | 1b |
+| C3 | Identity, privilege, and configuration changes: directory audit, cloud control plane, RBAC, Kubernetes API, security tool administration, virtualisation and MDM management | 2 configuration changes, 6, 8, 9, 11 | 1a, 4a, 5a, 6a-6b, 8a |
+| C4 | Endpoint and operating system activity: process, script, logon, service, scheduled task, registry, file | 1, 5, 6, 13, 14 | 2a-2j |
+| C5 | Network activity: firewall, DNS, DHCP, web proxy, flow, load balancer, mail gateway and message flow, web access to internet-facing services | 2, 8, 12 | 3a-3c |
+| C6 | Collaboration, SaaS, and business application activity | 8 Office 365 and Google Workspace | 7a |
+| C7 | Data access: storage, database audit and queries, API data access, directory queries, and audit log access | 8 storage and cloud API logs, 10 databases, 6/9/10/14 audit log access | - |
+| C8 | Behavior analytics, threat intelligence, and identity inventory used by detections | - | 1a identity attributes |
+| C9 | Secondary: health, performance, metrics, diagnostics, inventory, posture snapshots, reference data, and aggregates derived from another collected table | - | - |
+
+C8 and the detection pipeline health part of C1 are baseline judgment. Neither document names UEBA, threat intelligence, or Sentinel health tables.
+
+### Tier rules
+
+The first matching rule wins.
+
+| Rule | Tier | When |
+| --- | --- | --- |
+| T5 | Analytics | The table would otherwise get T3 or T4, but it has no Auxiliary/Lake support. See plan support below. |
+| T1 | Analytics | Generic detections need near-real-time matching on single events. |
+| T2 | Analytics | Low-volume enrichment or join target for analytics-tier detections or Sentinel features. |
+| T3 | Data lake | Primary, high or very-high volume, and the generic detection use is aggregation, threat-intelligence matching, baselining, or investigation. |
+| T4 | Data lake | Low-touch context queried during investigations rather than for alerting. |
+
+T3 relies on [KQL jobs](https://learn.microsoft.com/azure/sentinel/datalake/kql-jobs) and summary rules. Data lake ingestion latency is up to 15 minutes, a scheduled job starts at least 30 minutes after it is created, and a tenant can run 5 jobs concurrently with 100 enabled. Tables where some rows need T1 and the rest fit T3 are split candidates: a transformation sends the matching rows to Analytics and the rest to the lake.
+
+### Plan support
+
+The data lake tier does not support every table. T3 and T4 apply only when the [Azure Monitor table feature matrix](https://learn.microsoft.com/azure/azure-monitor/reference/tables-features) lists Auxiliary/Lake support for the table (`data/auxiliary-plan-tables.json`), or when the table is a DCR-based custom table (`_CL`). Every other table that would land in the lake gets `analytics` with rule T5. For those tables, long-term retention uses the mirrored lake copy, and volume is reduced with ingest-time filtering or a narrower collection scope. `scripts/Test-Baseline.ps1` rejects a `datalake` recommendation for a built-in table without Auxiliary/Lake support.
+
+Classic custom tables created by the HTTP Data Collector API must be migrated to DCR-based tables before they can use the lake.
+
+### Classification and tier matrix
+
+| | Analytics | Data lake |
+| --- | --- | --- |
+| **Primary** | **C1-C8 with T1, T2, or T5.** High-value events that need near-real-time detection, low-volume join targets, or high-value tables the lake cannot hold. `SigninLogs` (C2 T1), `SecurityAlert` (C1 T1), `IdentityInfo` (C8 T2), `Event` (C4 T5). | **C1-C8 with T3 or T4.** High-value events at high volume detected through aggregation or jobs, or high-value context used mainly in investigations. `AADNonInteractiveUserSignInLogs` (C2 T3), `AZFWNetworkRule` (C5 T3), `StorageBlobLogs` (C7 T3), `ASimDhcpEventLogs` (C5 T4). |
+| **Secondary** | **C9 with T2 or T5.** Context that analytics-tier detections or Sentinel features join against, or context tables the lake cannot hold. `Watchlist` (C9 T2), `ExposureGraphNodes` (C9 T2), `Perf` (C9 T5), `Heartbeat` (C9 T5). | **C9 with T4.** Operational and reference context. `DeviceInfo`, `DeviceTvmSoftwareInventory`, `AZFWFatFlow`, `StorageQueueLogs` (all C9 T4). |
+
+Secondary tables never use T1 or T3.
+
+### Volume model
+
+`volumeDriver` records what one row represents. `volumeClass` is the expected volume relative to other tables where the source is deployed. **Both are based on judgment and experience**, not broadly measured tenant volume. [Log Horizon](https://github.com/lnfernux/log-horizon) measures actual ingestion from the `Usage` table.
+
+| Driver | Default class | Driver | Default class |
+| --- | --- | --- | --- |
+| `alert` | low | `connection` | very-high |
+| `admin-action` | low | `dns-query` | very-high |
+| `snapshot` | low | `web-request` | very-high |
+| `sign-in` | medium | `token-sign-in` | high |
+| `activity` | medium | `endpoint-event` | high |
+| `message` | medium | `os-event` | high |
+| `indicator` | medium | `api-request` | high |
+| `data-access` | high | `metric` | high |
+| `application-trace` | high | | |
+
+Per-table overrides adjust the class where the default does not fit. For example, `AADNonInteractiveUserSignInLogs` is very-high, and WAF tables are high because they usually log matched requests.
+
 ### Human review workflow
 
 The [`baseline-human-review` skill](.github/skills/baseline-human-review/SKILL.md) runs the complete review process: prerequisite checks, source-backed proposal generation, an overview with confidence and uncertainty, one-table-at-a-time decisions, a resumable review ledger, approved-change promotion, and validation. A reviewer can accept, edit, reject, defer, or challenge each proposal. Uncertain tables are highlighted and default to deferred.
@@ -148,7 +222,7 @@ pwsh ./scripts/Import-ClassificationReview.ps1 `
 	-DataVersion <next-version>
 ```
 
-The importer accepts only `accept` and `edit` decisions, applies structured edits, rejects duplicate tables and unknown fields, updates provenance and version metadata, regenerates checksums, and validates the result.
+The importer accepts only `accept` and `edit` decisions, applies structured edits, rejects duplicate tables and unknown fields, updates provenance and version metadata, regenerates pre-made baselines and checksums, and validates the result. Candidates with `status: changed` replace the existing record in place. All other candidates must be new tables. `-AzureSentinelRevision` is optional and updates the Azure-Sentinel provenance record only when supplied. `-ReviewedSourcesPath` adds or replaces source records by `id`.
 
 ### Table catalog review
 
