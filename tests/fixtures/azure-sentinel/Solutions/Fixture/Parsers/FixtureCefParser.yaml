@@ -1,0 +1,9 @@
+id: fixture-cef-parser
+Function:
+  Title: Fixture parser over a shared CEF table
+FunctionName: FixtureCefParser
+FunctionAlias: FixtureCefParser
+FunctionQuery: |
+  CommonSecurityLog
+  | where DeviceVendor =~ 'fixturevendor'
+  | extend EventVendor = 'FixtureVendor'

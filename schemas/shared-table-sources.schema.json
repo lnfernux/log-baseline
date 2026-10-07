@@ -1,16 +1,21 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/lnfernux/log-baseline/schemas/log-classifications.schema.json",
-  "title": "Log baseline classifications",
+  "$id": "https://github.com/lnfernux/log-baseline/schemas/shared-table-sources.schema.json",
+  "title": "Sources inside shared tables",
+  "description": "Classifications for log sources that share a table such as CommonSecurityLog or Syslog. The filter identifies the source's rows. A per-source tier is applied with a split transformation on the shared table.",
   "type": "array",
-  "minItems": 1,
   "items": {
     "type": "object",
-    "required": ["tableName", "connector", "classification", "category", "description", "keywords", "mitreSources", "recommendedTier", "isFree", "recommendedRetentionDays", "sourceIds"],
+    "required": ["sourceId", "displayName", "table", "filter", "connector", "classification", "valueRule", "category", "description", "keywords", "mitreSources", "recommendedTier", "tierRule", "volumeClass", "volumeDriver", "recommendedRetentionDays", "sourceIds"],
     "properties": {
-      "tableName": { "type": "string", "minLength": 1 },
+      "sourceId": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+      "displayName": { "type": "string", "minLength": 1 },
+      "table": { "type": "string", "minLength": 1 },
+      "filter": { "type": "string", "minLength": 1 },
+      "parser": { "type": "string", "minLength": 1 },
       "connector": { "type": "string", "minLength": 1 },
       "classification": { "enum": ["primary", "secondary"] },
+      "valueRule": { "enum": ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"] },
       "category": {
         "enum": [
           "Application Logs", "Cloud Control Plane", "Cloud Security", "Configuration Management",
@@ -25,7 +30,6 @@
       "keywords": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
       "mitreSources": { "type": "array", "items": { "type": "string" } },
       "recommendedTier": { "enum": ["analytics", "datalake"] },
-      "valueRule": { "enum": ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"] },
       "tierRule": { "enum": ["T1", "T2", "T3", "T4", "T5"] },
       "volumeClass": { "enum": ["low", "medium", "high", "very-high"] },
       "volumeDriver": {
@@ -35,21 +39,21 @@
           "api-request", "data-access", "snapshot", "indicator", "metric", "application-trace"
         ]
       },
-      "isFree": { "type": "boolean" },
       "recommendedRetentionDays": { "enum": [90, 180, 365] },
-      "status": { "enum": ["deprecated", "legacy"] },
-      "replacedBy": { "type": "array", "items": { "type": "string", "minLength": 1 } },
-      "xdrStreamable": { "type": "boolean" },
-      "defenderNative": { "type": "boolean" },
-      "platform": { "type": "boolean" },
-      "domainId": { "type": "string", "minLength": 1 },
-      "logTypeId": { "type": "string", "minLength": 1 },
+      "splitHints": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["description", "kql"],
+          "properties": {
+            "description": { "type": "string", "minLength": 1 },
+            "kql": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        }
+      },
       "sourceIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z0-9-]+$" } }
     },
-    "additionalProperties": false,
-    "dependentRequired": {
-      "status": ["replacedBy"],
-      "replacedBy": ["status"]
-    }
+    "additionalProperties": false
   }
 }

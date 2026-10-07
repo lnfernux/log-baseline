@@ -1,0 +1,8 @@
+{
+  "FunctionName": "FixtureParser",
+  "FunctionResultColumns": [
+    { "Name": "TimeGenerated", "Type": "DateTime" },
+    { "Name": "UserName", "Type": "String" },
+    { "Name": "SourceAddress", "Type": "String" }
+  ]
+}

@@ -1,0 +1,5 @@
+id: fixture-legacy-name
+name: Rule on a name that only exists in the curated high-value fields
+query: |
+  CuratedTable
+  | where LegacyField == "fixture"

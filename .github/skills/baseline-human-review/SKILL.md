@@ -44,7 +44,7 @@ For each table:
 
 1. Read the current classification, schema, taxonomy, provenance, and relevant generated evidence.
 2. Research Microsoft Learn first, then public Azure/Azure-Sentinel content, then the classification sources in `README.md`.
-3. Apply `references/classification-rules.md` consistently. Decide the value rule (C1-C9) first, then the tier rule (T1-T5) in the stated order, and confirm the pair lands in a valid matrix cell.
+3. Apply `references/classification-rules.md` consistently. Decide the value rule (C1-C9) first, then the tier rule (T1-T5) in the stated order, and confirm the pair lands in a valid matrix cell. Analytic rule usage is evidence, not a tier decision: a table with rules can still be a data lake table with a KQL job or summary rule promotion path.
 4. Separate documented facts from recommendation judgment.
 5. Record evidence URLs and exact source revisions where available.
 6. Assign confidence: `high`, `medium`, or `low`.

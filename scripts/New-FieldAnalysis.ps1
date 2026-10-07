@@ -10,7 +10,16 @@ param(
 
     [string]$ExistingHighValueFieldsPath = (Join-Path (Split-Path -Parent $PSScriptRoot) 'data' 'high-value-fields.json'),
 
-    [string]$ExistingFieldFrequencyPath = (Join-Path (Split-Path -Parent $PSScriptRoot) 'data' 'field-frequency-stats.json'),
+    # Log Analytics metadata API document (tables[].name, tables[].columns[].name) used to keep only real columns.
+    [string]$TableSchemaPath,
+
+    # Tables whose columns vary by source, so the metadata column list is incomplete.
+    [string[]]$DynamicSchemaTables = @('AzureDiagnostics'),
+
+    # Writes review candidates for sources inside shared tables (vendor or process filters).
+    [string]$SharedSourceCandidatesOutputPath,
+
+    [string[]]$SharedTables = @('CommonSecurityLog', 'Syslog'),
 
     [Parameter(Mandatory)]
     [string]$FieldFrequencyOutputPath,
@@ -53,6 +62,10 @@ $ignoredNames = [System.Collections.Generic.HashSet[string]]::new([System.String
 ) | ForEach-Object { [void]$ignoredNames.Add($_) }
 $regexTimeout = [timespan]::FromSeconds(2)
 $yamlQueryRegex = [regex]::new('^(?<indent>\s*)query\s*:\s*(?<value>.*)$', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase, $regexTimeout)
+$functionQueryRegex = [regex]::new('^(?<indent>\s*)FunctionQuery\s*:\s*(?<value>.*)$', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase, $regexTimeout)
+$functionAliasRegex = [regex]::new('^\s*FunctionAlias\s*:\s*[''"]?([A-Za-z_][A-Za-z0-9_]*)', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Multiline, $regexTimeout)
+$functionCallRegex = [regex]::new('(?<![\w.$])([A-Za-z_][A-Za-z0-9_]*)\s*\(', [System.Text.RegularExpressions.RegexOptions]::None, $regexTimeout)
+$sourcePredicateRegex = [regex]::new('\b(DeviceVendor|DeviceProduct|ProcessName|Facility)\s*(==|=~|in~|in|has_any|has|contains|startswith)\s*(\((?:[^()]|\([^()]*\))*\)|"[^"]*"|''[^'']*''|```[^`]*```)', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase, $regexTimeout)
 $letSymbolRegex = [regex]::new('^\s*let\s+([A-Za-z_][A-Za-z0-9_]*)\s*=', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Multiline, $regexTimeout)
 $tableRegexes = @(
     [regex]::new('^\s*([A-Z][A-Za-z0-9_]*)\s*(?:\r?\n)?\s*\|', [System.Text.RegularExpressions.RegexOptions]::Multiline, $regexTimeout),
@@ -75,12 +88,12 @@ function Write-JsonFile {
 }
 
 function Get-YamlQueries {
-    param([Parameter(Mandatory)][string]$Path)
+    param([Parameter(Mandatory)][string]$Path, [regex]$KeyRegex = $yamlQueryRegex)
 
     $lines = [System.IO.File]::ReadAllLines($Path)
     $queries = @()
     for ($lineIndex = 0; $lineIndex -lt $lines.Count; $lineIndex++) {
-        $match = $yamlQueryRegex.Match($lines[$lineIndex])
+        $match = $KeyRegex.Match($lines[$lineIndex])
         if (-not $match.Success) { continue }
 
         $value = $match.Groups['value'].Value.Trim()
@@ -174,6 +187,99 @@ function Get-KqlFields {
     return @($fields | Sort-Object)
 }
 
+function New-NameSet {
+    param([string[]]$Names)
+    $set = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($name in @($Names)) { if ($name) { [void]$set.Add($name) } }
+    return , $set
+}
+
+function Get-ParserOutputColumns {
+    param([Parameter(Mandatory)][string]$Alias)
+
+    # Azure-Sentinel registers parser output schemas for KQL validation, either as functions or as pseudo-tables.
+    $validationRoot = Join-Path $sourceRoot '.script' 'tests' 'KqlvalidationsTests'
+    $functionPath = Join-Path $validationRoot 'CustomFunctions' "$Alias.json"
+    if (Test-Path -LiteralPath $functionPath -PathType Leaf) {
+        $definition = Get-Content -LiteralPath $functionPath -Raw | ConvertFrom-Json
+        if ($definition.PSObject.Properties.Name -contains 'FunctionResultColumns') { return , (New-NameSet @($definition.FunctionResultColumns.Name)) }
+    }
+    $tablePath = Join-Path $validationRoot 'CustomTables' "$Alias.json"
+    if (Test-Path -LiteralPath $tablePath -PathType Leaf) {
+        $definition = Get-Content -LiteralPath $tablePath -Raw | ConvertFrom-Json
+        if ($definition.PSObject.Properties.Name -contains 'Properties') { return , (New-NameSet @($definition.Properties.Name)) }
+    }
+    return $null
+}
+
+function Select-KnownColumns {
+    param([string[]]$Fields, $Columns)
+    if ($null -eq $Columns -or $Columns.Count -eq 0) { return @($Fields) }
+    # Return the schema's spelling so casing does not depend on which rule is read first.
+    $known = foreach ($field in $Fields) {
+        $actual = $null
+        if ($Columns.TryGetValue($field, [ref]$actual)) { $actual }
+    }
+    return @($known)
+}
+
+function Select-CommonFields {
+    param([string[]]$Tables, [double]$Share)
+    $names = @($Tables | Sort-Object | ForEach-Object { $tableStats[$_].Fields.Keys })
+    $common = foreach ($group in @($names | Group-Object { $_.ToLowerInvariant() } | Where-Object Count -gt ($Tables.Count * $Share))) {
+        # Most frequent spelling wins, then ordinal order, so output does not depend on hash order.
+        @($group.Group | Group-Object -CaseSensitive | Sort-Object @{ Expression = 'Count'; Descending = $true }, @{ Expression = { $_.Name }; Descending = $false } -CaseSensitive)[0].Name
+    }
+    return @($common | Sort-Object)
+}
+
+function Add-FieldCounts {
+    param([Parameter(Mandatory)][hashtable]$Stats, [Parameter(Mandatory)][string]$Name, [string[]]$Fields)
+    if (-not $Stats.ContainsKey($Name)) { $Stats[$Name] = [pscustomobject]@{ RuleCount = 0; Fields = @{} } }
+    $Stats[$Name].RuleCount++
+    foreach ($field in @($Fields | Where-Object { $_ })) {
+        if (-not $Stats[$Name].Fields.ContainsKey($field)) { $Stats[$Name].Fields[$field] = 0 }
+        $Stats[$Name].Fields[$field]++
+    }
+}
+
+function ConvertTo-RankedFields {
+    param([Parameter(Mandatory)][hashtable]$Fields)
+    $ranked = [ordered]@{}
+    foreach ($field in @($Fields.GetEnumerator() | Sort-Object @{ Expression = 'Value'; Descending = $true }, @{ Expression = 'Key'; Descending = $false })) {
+        $ranked[$field.Key] = $field.Value
+    }
+    return $ranked
+}
+
+function Get-SourceFilter {
+    param([Parameter(Mandatory)][string]$Kql)
+
+    # First predicate per source field, joined into one filter that identifies the source's rows.
+    $parts = [ordered]@{}
+    foreach ($match in $sourcePredicateRegex.Matches($Kql)) {
+        $field = $match.Groups[1].Value
+        if ($parts.Contains($field)) { continue }
+        $value = $match.Groups[3].Value
+        if ($value.StartsWith('```')) { $value = '"' + $value.Trim('`') + '"' }
+        elseif ($value.StartsWith("'")) { $value = '"' + $value.Trim("'") + '"' }
+        $parts[$field] = "$field $($match.Groups[2].Value) $value"
+    }
+    if ($parts.Count -eq 0) { return $null }
+    return (@($parts.Values) -join ' and ')
+}
+
+function Add-SharedSource {
+    param([hashtable]$Candidates, [string]$Table, [string]$Filter, [string]$Parser, [int]$ParserRules, [int]$DirectRules)
+    $key = "$Table|$($Filter.ToLowerInvariant())"
+    if (-not $Candidates.ContainsKey($key)) {
+        $Candidates[$key] = [pscustomobject]@{ Table = $Table; Filter = $Filter; Parsers = (New-NameSet @()); ParserRules = 0; DirectRules = 0 }
+    }
+    if ($Parser) { [void]$Candidates[$key].Parsers.Add($Parser) }
+    $Candidates[$key].ParserRules += $ParserRules
+    $Candidates[$key].DirectRules += $DirectRules
+}
+
 if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) {
     throw "Azure-Sentinel path does not exist: $sourceRoot"
 }
@@ -186,8 +292,8 @@ if (-not (Test-Path -LiteralPath $TableCatalogPath -PathType Leaf)) {
 if (-not (Test-Path -LiteralPath $ExistingHighValueFieldsPath -PathType Leaf)) {
     throw "Existing high-value field file does not exist: $ExistingHighValueFieldsPath"
 }
-if (-not (Test-Path -LiteralPath $ExistingFieldFrequencyPath -PathType Leaf)) {
-    throw "Existing field-frequency file does not exist: $ExistingFieldFrequencyPath"
+if ($TableSchemaPath -and -not (Test-Path -LiteralPath $TableSchemaPath -PathType Leaf)) {
+    throw "Table schema file does not exist: $TableSchemaPath"
 }
 
 if (-not $SourceRevision) {
@@ -230,32 +336,93 @@ if ($catalogTableNames.Count -eq 0) {
     throw "Table catalog '$TableCatalogPath' contains no table names."
 }
 $existingHighValue = Get-Content -LiteralPath $ExistingHighValueFieldsPath -Raw | ConvertFrom-Json
-$existingFrequency = Get-Content -LiteralPath $ExistingFieldFrequencyPath -Raw | ConvertFrom-Json
-$trustedTables = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-foreach ($entry in $classifications) { [void]$trustedTables.Add([string]$entry.tableName) }
-foreach ($property in $existingHighValue.PSObject.Properties) { [void]$trustedTables.Add($property.Name) }
-foreach ($property in $existingFrequency.perTable.PSObject.Properties) { [void]$trustedTables.Add($property.Name) }
-foreach ($tableName in $catalogTableNames) { [void]$trustedTables.Add($tableName) }
+
+$tableSchemas = @{}
+if ($TableSchemaPath) {
+    $schemaDocument = Get-Content -LiteralPath $TableSchemaPath -Raw | ConvertFrom-Json
+    foreach ($schemaTable in @($schemaDocument.tables)) {
+        if ($schemaTable.PSObject.Properties.Name -notcontains 'columns' -or [string]$schemaTable.name -in $DynamicSchemaTables) { continue }
+        $columns = @($schemaTable.columns | ForEach-Object { [string]$_.name } | Where-Object { $_ })
+        if ($columns.Count -gt 0) { $tableSchemas[[string]$schemaTable.name] = New-NameSet $columns }
+    }
+}
+
+# Parsers: FunctionAlias definitions under Parsers folders. Rules that call a parser are attributed to the parser.
+$parserFiles = @(@('Parsers', 'Solutions') | ForEach-Object { Join-Path $sourceRoot $_ } | Where-Object { Test-Path -LiteralPath $_ -PathType Container } | ForEach-Object {
+    [System.IO.Directory]::EnumerateFiles($_, '*.yaml', [System.IO.SearchOption]::AllDirectories)
+    [System.IO.Directory]::EnumerateFiles($_, '*.yml', [System.IO.SearchOption]::AllDirectories)
+} | Where-Object { $_ -match '[\\/]Parsers[\\/]' } | Sort-Object -Unique)
+$parserQueries = @{}
+foreach ($file in $parserFiles) {
+    $aliasMatch = $functionAliasRegex.Match([System.IO.File]::ReadAllText($file))
+    if (-not $aliasMatch.Success) { continue }
+    $alias = $aliasMatch.Groups[1].Value
+    if ($catalogTableNames -contains $alias -or $alias -match '_CL$') { continue }
+    $functionQuery = @(Get-YamlQueries -Path $file -KeyRegex $functionQueryRegex) -join "`n"
+    if (-not $parserQueries.ContainsKey($alias)) { $parserQueries[$alias] = $functionQuery }
+}
+$parserAliases = New-NameSet @($parserQueries.Keys)
+
+$trustedTables = New-NameSet (@($classifications | ForEach-Object { [string]$_.tableName }) + $catalogTableNames)
+$classifiedParsers = @($classifications | ForEach-Object { [string]$_.tableName } | Where-Object { $parserAliases.Contains($_) } | Sort-Object -Unique)
+foreach ($alias in $classifiedParsers) { [void]$trustedTables.Remove($alias) }
+
+function Test-IsTable {
+    param([string]$Name)
+    return (-not $parserAliases.Contains($Name)) -and ($trustedTables.Contains($Name) -or $Name -match '_CL$')
+}
+
+$parserInfo = @{}
+foreach ($alias in $parserQueries.Keys) {
+    $sourceTables = @(Get-KqlTables -Kql $parserQueries[$alias] | Where-Object { Test-IsTable $_ })
+    $sourceColumns = [System.Collections.Generic.SortedSet[string]]::new([System.StringComparer]::Ordinal)
+    $knownSources = @($sourceTables | Where-Object { $tableSchemas.ContainsKey($_) })
+    if ($knownSources.Count -gt 0) {
+        foreach ($field in @(Get-KqlFields -Kql $parserQueries[$alias] -TableNames $sourceTables)) {
+            if (@($knownSources | Where-Object { $tableSchemas[$_].Contains($field) }).Count -gt 0) { [void]$sourceColumns.Add($field) }
+        }
+    }
+    $parserInfo[$alias] = [pscustomobject]@{ Tables = $sourceTables; SourceColumns = @($sourceColumns); OutputColumns = (Get-ParserOutputColumns -Alias $alias) }
+}
 
 $tableStats = @{}
+$parserStats = @{}
+$sharedSources = @{}
+$sharedTableSet = New-NameSet $SharedTables
 $totalRulesParsed = 0
 foreach ($file in $yamlFiles) {
     foreach ($query in @(Get-YamlQueries -Path $file)) {
         $totalRulesParsed++
-        $tables = @(Get-KqlTables -Kql $query | Where-Object { $trustedTables.Contains($_) -or $_ -match '_CL$' })
-        if ($tables.Count -eq 0) { continue }
-        $fields = @(Get-KqlFields -Kql $query -TableNames $tables)
+        $referenced = @(Get-KqlTables -Kql $query)
+        $tables = @($referenced | Where-Object { Test-IsTable $_ })
+        $localSymbols = New-NameSet @($letSymbolRegex.Matches($query) | ForEach-Object { $_.Groups[1].Value })
+        $parsers = @(@($referenced) + @($functionCallRegex.Matches($query) | ForEach-Object { $_.Groups[1].Value }) |
+            Where-Object { $parserAliases.Contains($_) -and -not $localSymbols.Contains($_) } | Sort-Object -Unique)
+        if ($tables.Count -eq 0 -and $parsers.Count -eq 0) { continue }
+        $fields = @(Get-KqlFields -Kql $query -TableNames @($tables + $parsers))
         foreach ($table in $tables) {
-            if (-not $tableStats.ContainsKey($table)) {
-                $tableStats[$table] = [pscustomobject]@{ RuleCount = 0; Fields = @{} }
-            }
-            $tableStats[$table].RuleCount++
-            foreach ($field in $fields) {
-                if (-not $tableStats[$table].Fields.ContainsKey($field)) { $tableStats[$table].Fields[$field] = 0 }
-                $tableStats[$table].Fields[$field]++
-            }
+            # Assign directly: an if-expression would enumerate the set into a case-sensitive array.
+            $schema = $null
+            if ($tableSchemas.ContainsKey($table)) { $schema = $tableSchemas[$table] }
+            Add-FieldCounts -Stats $tableStats -Name $table -Fields (Select-KnownColumns -Fields $fields -Columns $schema)
+        }
+        foreach ($parser in $parsers) {
+            Add-FieldCounts -Stats $parserStats -Name $parser -Fields (Select-KnownColumns -Fields $fields -Columns $parserInfo[$parser].OutputColumns)
+        }
+        $directShared = @($tables | Where-Object { $sharedTableSet.Contains($_) })
+        if ($directShared.Count -gt 0) {
+            $filter = Get-SourceFilter -Kql $query
+            if ($filter) { foreach ($table in $directShared) { Add-SharedSource -Candidates $sharedSources -Table $table -Filter $filter -DirectRules 1 } }
         }
     }
+}
+foreach ($alias in $parserQueries.Keys) {
+    $sharedSourceTables = @($parserInfo[$alias].Tables | Where-Object { $sharedTableSet.Contains($_) })
+    if ($sharedSourceTables.Count -eq 0) { continue }
+    $filter = Get-SourceFilter -Kql $parserQueries[$alias]
+    if (-not $filter) { continue }
+    $parserRules = if ($parserStats.ContainsKey($alias)) { $parserStats[$alias].RuleCount } else { 0 }
+    foreach ($table in $sharedSourceTables) { Add-SharedSource -Candidates $sharedSources -Table $table -Filter $filter -Parser $alias -ParserRules $parserRules }
 }
 if ($totalRulesParsed -eq 0 -or $tableStats.Count -eq 0) {
     throw 'No query-bearing rules or referenced tables were found.'
@@ -264,25 +431,32 @@ if ($totalRulesParsed -eq 0 -or $tableStats.Count -eq 0) {
 $categoryByTable = @{}
 foreach ($entry in $classifications) { $categoryByTable[$entry.tableName] = $entry.category }
 
-$universalFields = @($tableStats.Values | ForEach-Object { $_.Fields.Keys } | Group-Object | Where-Object Count -gt ($tableStats.Count * 0.5) | Sort-Object Name | ForEach-Object Name)
+$universalFields = @(Select-CommonFields -Tables @($tableStats.Keys) -Share 0.5)
 $categoryDefaults = [ordered]@{}
 foreach ($category in @($categoryByTable.Values | Sort-Object -Unique)) {
     $categoryTables = @($tableStats.Keys | Where-Object { $categoryByTable.ContainsKey($_) -and $categoryByTable[$_] -eq $category })
     if ($categoryTables.Count -eq 0) { continue }
-    $categoryFields = @($categoryTables | ForEach-Object { $tableStats[$_].Fields.Keys } | Group-Object | Where-Object Count -gt ($categoryTables.Count * 0.4) | Sort-Object Name | ForEach-Object Name)
+    $categoryFields = @(Select-CommonFields -Tables $categoryTables -Share 0.4)
     if ($categoryFields.Count -gt 0) { $categoryDefaults[$category] = $categoryFields }
 }
 
 $perTable = [ordered]@{}
 foreach ($tableEntry in @($tableStats.GetEnumerator() | Sort-Object Key)) {
-    $table = [string]$tableEntry.Key
-    $statistics = $tableEntry.Value
-    if ($statistics.RuleCount -lt $MinimumRulesPerTable) { continue }
-    $fields = [ordered]@{}
-    foreach ($field in @($statistics.Fields.GetEnumerator() | Sort-Object @{ Expression = 'Value'; Descending = $true }, @{ Expression = 'Key'; Descending = $false })) {
-        $fields[$field.Key] = $field.Value
+    if ($tableEntry.Value.RuleCount -lt $MinimumRulesPerTable) { continue }
+    $perTable[[string]$tableEntry.Key] = ConvertTo-RankedFields -Fields $tableEntry.Value.Fields
+}
+$unverifiedTables = @($perTable.Keys | Where-Object { -not $tableSchemas.ContainsKey($_) } | Sort-Object)
+
+$parsers = [ordered]@{}
+foreach ($parserEntry in @($parserStats.GetEnumerator() | Sort-Object Key)) {
+    $info = $parserInfo[[string]$parserEntry.Key]
+    $parsers[[string]$parserEntry.Key] = [ordered]@{
+        tables = @($info.Tables)
+        ruleCount = $parserEntry.Value.RuleCount
+        outputColumnsVerified = $null -ne $info.OutputColumns
+        sourceColumns = @($info.SourceColumns)
+        fields = ConvertTo-RankedFields -Fields $parserEntry.Value.Fields
     }
-    $perTable[$table] = $fields
 }
 
 $frequencyDocument = [ordered]@{
@@ -292,8 +466,23 @@ $frequencyDocument = [ordered]@{
     universalFields = $universalFields
     categoryDefaults = $categoryDefaults
     perTable = $perTable
+    unverifiedTables = $unverifiedTables
+    parsers = $parsers
 }
 Write-JsonFile -Path $FieldFrequencyOutputPath -Value $frequencyDocument
+
+if ($SharedSourceCandidatesOutputPath) {
+    $sharedCandidates = @($sharedSources.Values | Sort-Object Table, Filter | ForEach-Object {
+        [ordered]@{
+            table = $_.Table
+            filter = $_.Filter
+            parsers = @($_.Parsers | Sort-Object)
+            parserRuleCount = $_.ParserRules
+            directRuleCount = $_.DirectRules
+        }
+    })
+    Write-JsonFile -Path $SharedSourceCandidatesOutputPath -Value ([ordered]@{ sourceRevision = $SourceRevision; sharedTables = @($SharedTables); candidates = $sharedCandidates })
+}
 
 $candidateHighValue = [ordered]@{}
 foreach ($property in @($existingHighValue.PSObject.Properties | Sort-Object Name)) {
@@ -310,8 +499,9 @@ foreach ($table in @($perTable.Keys | Sort-Object)) {
     $rankedFields = @($perTable[$table].GetEnumerator() | Sort-Object @{ Expression = 'Value'; Descending = $true }, @{ Expression = 'Key'; Descending = $false } | Select-Object -First $MaximumFieldsPerTable | ForEach-Object Key)
     if ($rankedFields.Count -lt $MinimumFieldsPerTable) { continue }
     $category = if ($categoryByTable.ContainsKey($table)) { $categoryByTable[$table] } else { 'Unclassified' }
+    $verification = if ($tableSchemas.ContainsKey($table)) { '' } else { ', fields not schema-verified' }
     $candidateHighValue[$table] = [ordered]@{
-        description = "$category - Mined from $($tableStats[$table].RuleCount) public rules"
+        description = "$category - Mined from $($tableStats[$table].RuleCount) public rules$verification"
         highValueFields = $rankedFields
         splitHints = @()
     }
@@ -332,10 +522,20 @@ $summary = @(
     "- YAML files scanned: $($yamlFiles.Count)",
     "- Query blocks parsed: $totalRulesParsed",
     "- Catalog tables trusted: $($catalogTableNames.Count)",
+    "- Table schemas loaded: $($tableSchemas.Count)",
     "- Tables discovered: $($tableStats.Count)",
-    "- Tables meeting the $MinimumRulesPerTable-rule threshold: $($perTable.Count)",
+    "- Tables meeting the $MinimumRulesPerTable-rule threshold: $($perTable.Count) ($($unverifiedTables.Count) without a known schema)",
+    "- Parsers defined: $($parserQueries.Count), called by rules: $($parsers.Count)",
+    "- Shared-table source candidates: $($sharedSources.Count)",
     "- New high-value candidates: $($addedTables.Count)",
-    '',
+    ''
+)
+if ($classifiedParsers.Count -gt 0) {
+    $summary += @('## Classified names that are parsers', '', 'These are parser aliases, not tables. Their rules are attributed to the parser and its source tables.', '')
+    $summary += @($classifiedParsers | ForEach-Object { "- ``$_`` -> " + ((@($parserInfo[$_].Tables) | ForEach-Object { "``$_``" }) -join ', ') })
+    $summary += ''
+}
+$summary += @(
     '## New high-value candidates',
     ''
 )

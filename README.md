@@ -1,8 +1,8 @@
 # Microsoft Sentinel Log Baseline
 
 [![Validate baseline](https://github.com/lnfernux/log-baseline/actions/workflows/validate.yml/badge.svg)](https://github.com/lnfernux/log-baseline/actions/workflows/validate.yml)
-[![Data version](https://img.shields.io/badge/data-0.3.0-00cc00)](CHANGELOG.md)
-[![Schema version](https://img.shields.io/badge/schema-1.2.0-475569)](data/manifest.json)
+[![Data version](https://img.shields.io/badge/data-0.4.0-00cc00)](CHANGELOG.md)
+[![Schema version](https://img.shields.io/badge/schema-1.3.0-475569)](data/manifest.json)
 [![License](https://img.shields.io/badge/license-CC%20BY%204.0%20%2B%20MIT-475569)](LICENSE.md)
 
 > [!IMPORTANT]
@@ -20,6 +20,7 @@ The canonical files are stored in [`data/`](data/):
 | File | Description |
 | --- | --- |
 | `log-classifications.json` | Sentinel table classifications and recommendations. |
+| `shared-table-sources.json` | Classifications for sources inside shared tables such as `CommonSecurityLog` and `Syslog`. |
 | `basic-plan-tables.json` | Built-in tables supporting the Basic plan. |
 | `auxiliary-plan-tables.json` | Built-in tables supporting the Auxiliary plan. |
 | `implicit-consumers.json` | Non-KQL Sentinel consumers and platform tables. |
@@ -130,6 +131,8 @@ The first matching rule wins.
 
 T3 relies on [KQL jobs](https://learn.microsoft.com/azure/sentinel/datalake/kql-jobs) and summary rules. Data lake ingestion latency is up to 15 minutes, a scheduled job starts at least 30 minutes after it is created, and a tenant can run 5 jobs concurrently with 100 enabled. Tables where some rows need T1 and the rest fit T3 are split candidates. A [split transformation](https://learn.microsoft.com/azure/sentinel/transformation-filter-split#split-transformations) keeps the matching rows in Analytics, where they are also mirrored to the lake, and sends the rest to a separate `_SPLT` table in the lake.
 
+Analytic rules do not force the analytics tier. A KQL job or summary rule can promote the subset a detection needs from the lake into an analytics table. Rule usage is evidence for the tier decision, not the decision itself: T1 needs single-event matching that cannot wait for lake latency, and T2 needs the table to be a join or lookup target for analytics-tier detections.
+
 ### Plan support
 
 The data lake tier does not support every table. T3 and T4 apply only when the [Azure Monitor table feature matrix](https://learn.microsoft.com/azure/azure-monitor/reference/tables-features) lists Auxiliary/Lake support for the table (`data/auxiliary-plan-tables.json`), or when the table is a DCR-based custom table (`_CL`). Every other table that would land in the lake gets `analytics` with rule T5. For those tables, long-term retention uses the mirrored lake copy, and volume is reduced with ingest-time filtering or a narrower collection scope. `scripts/Test-Baseline.ps1` rejects a `datalake` recommendation for a built-in table without Auxiliary/Lake support.
@@ -144,6 +147,42 @@ Microsoft documents that [DCR-based custom tables support all plans](https://lea
 | **Secondary** | **C9 with T2 or T5.** Context that analytics-tier detections or Sentinel features join against, or context tables the lake cannot hold. `Watchlist` (C9 T2), `ExposureGraphNodes` (C9 T2), `Perf` (C9 T5), `Heartbeat` (C9 T5). | **C9 with T4.** Operational and reference context. `DeviceInfo`, `DeviceTvmSoftwareInventory`, `AZFWFatFlow`, `StorageQueueLogs` (all C9 T4). |
 
 Secondary tables never use T1 or T3.
+
+### Sources inside shared tables
+
+Network, security, and OT devices that send CEF or Syslog share `CommonSecurityLog` and `Syslog`, and most of them are queried through a parser. One record per table cannot describe them. `shared-table-sources.json` classifies each source with the same value, tier, volume, and retention fields as a table, plus:
+
+- `table`: the shared table.
+- `filter`: a KQL predicate that selects the source's rows, such as `DeviceVendor =~ "radiflow"`.
+- `parser`: the parser alias, when rules use one.
+- `splitHints`: optional, for data lake sources. Each hint is a KQL predicate for the rows of that source to keep in Analytics, such as threat logs and denied traffic.
+
+The `CommonSecurityLog` and `Syslog` records in `log-classifications.json` describe the remainder: rows that match no source in `shared-table-sources.json`. Source records take precedence for their own rows. Table-level split hints in `high-value-fields.json` apply to the remainder only.
+
+A per-source tier is applied with a [split transformation](https://learn.microsoft.com/azure/sentinel/transformation-filter-split#split-transformations) on the shared table. A table has one split rule. Rows that match its condition go to Analytics and are mirrored to the data lake. All other rows go to `<Table>_SPLT` in the data lake only. Build one condition per shared table from the sources deployed in the tenant:
+
+```kql
+// Analytics sources keep all their rows in Analytics.
+(<analytics source filter>) or (<analytics source filter>)
+// Data lake sources keep only the rows their split hints select.
+or ((<data lake source filter>) and ((<hint>) or (<hint>)))
+// Remainder, only when the table record recommends analytics.
+or case((<any source filter>) or (<any source filter>), false, true)
+```
+
+An analytics source that is left out of the condition moves to the data lake. A data lake source without split hints adds nothing. Filters and hints with a top-level `or` are stored in parentheses, and validation rejects them otherwise. Split hints guard negated predicates with `isnotempty()`, because `!~` is true for empty values. Filters can overlap, such as `linux-auth` and process-based sources that log to the `auth` facility. Overlap does not change the split condition, but per-source volume counts the shared rows once for each source. Filters and split hints use only [operators that transformations support](https://learn.microsoft.com/azure/azure-monitor/data-collection/data-collection-transformations-kql#supported-scalar-operators), so `in~` and `has_any` are written out with `or`.
+
+Retention is set per table, not per source. All data lake rows land in one `<Table>_SPLT` table, so set its retention to the highest `recommendedRetentionDays` among the deployed data lake sources and the remainder when it is data lake. Set the shared table's retention to the highest value among the deployed analytics sources and the remainder when it is analytics. Per-source retention is advisory inside a shared table.
+
+Plan support comes from the shared table. Per-source volume comes from summing `_BilledSize` over the filter, not from `Usage`. `New-FieldAnalysis.ps1 -SharedSourceCandidatesOutputPath` lists candidate sources from parser filters and from vendor filters in rules.
+
+### Defender-native tables
+
+`defenderNative: true` marks tables that are queryable in Defender advanced hunting without ingestion into a workspace ([schema reference](https://learn.microsoft.com/defender-xdr/advanced-hunting-schema-tables)). Some of them, such as `CloudKeyVaultEvents` and `EntraIdSignInEvents`, have no Log Analytics table at all.
+
+`xdrStreamable: true` means the table is listed for the [Microsoft Defender XDR connector](https://learn.microsoft.com/azure/sentinel/connect-microsoft-365-defender) in Microsoft Sentinel. It does not describe the [streaming API](https://learn.microsoft.com/defender-xdr/supported-event-types).
+
+The tier and retention fields describe the Microsoft Sentinel workspace model. In a Defender-native deployment, including [ISOC in Microsoft Defender](https://learn.microsoft.com/defender-xdr/isoc-overview), the native data is available for the included retention window without ingestion. The window is 90 days for Microsoft Defender data, Azure Activity, and Office 365 Activity ([announcement](https://techcommunity.microsoft.com/blog/microsoftthreatprotectionblog/integrated-security-operations-center-in-microsoft-defender/4559097)). Consumers apply that window as context: the tier recommendation covers retention beyond it, and a missing `Usage` row for a Defender-native table is expected, not a gap.
 
 ### Volume model
 
@@ -161,7 +200,7 @@ Secondary tables never use T1 or T3.
 | `data-access` | high | `metric` | high |
 | `application-trace` | high | | |
 
-Per-table overrides adjust the class where the default does not fit. For example, `AADNonInteractiveUserSignInLogs` is very-high, and WAF tables are high because they usually log matched requests.
+Per-table overrides adjust the class where the default does not fit. For example, `AADNonInteractiveUserSignInLogs` is very-high, and WAF tables are high because they usually log matched requests. An override is a reviewer judgment, and records do not store a reason for it.
 
 ### Human review workflow
 
@@ -196,6 +235,7 @@ pwsh ./scripts/New-FieldAnalysis.ps1 `
 	-AzureSentinelPath ../Azure-Sentinel `
 	-SourceRevision <40-character-commit-sha> `
 	-TableCatalogPath ./.github/table-catalog/snapshot.json `
+	-TableSchemaPath ./tmp/table-metadata.json `
 	-FieldFrequencyOutputPath ./tmp/field-frequency-stats.json `
 	-HighValueFieldsOutputPath ./tmp/high-value-fields.json `
 	-SummaryOutputPath ./tmp/field-analysis-summary.md
@@ -208,6 +248,10 @@ pwsh ./scripts/Import-FieldAnalysis.ps1 `
 ```
 
 Generation preserves curated high-value entries and adds threshold-qualified candidates without inventing split hints. Review the summary and candidate diff before running the import adapter. The workspace skill at [`.github/skills/high-value-field-generation/SKILL.md`](.github/skills/high-value-field-generation/SKILL.md) contains the full review checklist and examples.
+
+`-TableSchemaPath` takes a saved copy of the [Log Analytics metadata API](https://api.loganalytics.io/v1/metadata) response. Fields for tables with a known schema are limited to real columns, which removes aliases, calculated fields, and columns from joined tables. Tables without a known schema, mostly `_CL`, are listed in `unverifiedTables`. Only classified tables, catalog tables, and `_CL` tables count as tables.
+
+Rules that call a parser (a `FunctionAlias` under a `Parsers` folder) are attributed to the parser, not to a table. The `parsers` section maps each parser to its source tables, the source columns it reads (when the source schema is known), and the parsed fields that rules use. Ingestion-time transformations work on source columns, so `perTable` and `high-value-fields.json` stay keyed by table.
 
 The initial field-analysis snapshot predates revision capture. Its provenance record states that limitation explicitly. Future imports require the exact Azure-Sentinel commit.
 

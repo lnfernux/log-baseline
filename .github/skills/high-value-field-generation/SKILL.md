@@ -14,7 +14,8 @@ Generate review candidates from a fixed local Azure-Sentinel revision. Frequency
 2. Confirm the checkout contains `Detections`, `Hunting Queries`, or `Solutions`.
 3. Record the exact 40-character Azure-Sentinel commit SHA.
 4. Use a reviewed table-catalog snapshot from `Compare-TableCatalog.ps1`.
-5. Write candidates outside `data/`. Do not edit generated canonical files directly.
+5. Save the Log Analytics metadata API response (`https://api.loganalytics.io/v1/metadata`) to `./tmp/table-metadata.json` and record the observation date. It supplies table columns.
+6. Write candidates outside `data/`. Do not edit generated canonical files directly.
 
 ## Generate candidates
 
@@ -25,6 +26,7 @@ pwsh ./scripts/New-FieldAnalysis.ps1 `
     -AzureSentinelPath ../Azure-Sentinel `
     -SourceRevision $revision `
     -TableCatalogPath ./.github/table-catalog/snapshot.json `
+    -TableSchemaPath ./tmp/table-metadata.json `
     -FieldFrequencyOutputPath ./tmp/field-frequency-stats.json `
     -HighValueFieldsOutputPath ./tmp/high-value-fields.json `
     -SummaryOutputPath ./tmp/field-analysis-summary.md
@@ -36,11 +38,15 @@ For a reproducibility check, pass a fixed `-GeneratedAt` value and run the comma
 
 1. Read `field-analysis-summary.md` and inspect candidate diffs against `data/`.
 2. Confirm parsed rule and table counts are plausible for the selected revision.
-3. Compare discovered tables with the catalog, classifications, and `_CL` custom tables. Investigate names admitted by only one source.
-4. Check newly proposed fields against several source queries. Reject parser artifacts, aliases, operators, literals, and low-context fields.
-5. Preserve curated descriptions unless public evidence supports a correction.
-6. Treat empty `splitHints` on new candidates as intentional. Write split hints manually only when the KQL expression is valid and the split produces useful review context.
-7. Record uncertainty. Do not turn frequency thresholds into claims about detection quality.
+3. Compare discovered tables with the catalog, classifications, and `_CL` custom tables. Investigate names admitted by only one source. Classified names reported as parsers are parser aliases, not tables. Review them as naming corrections.
+4. Review `unverifiedTables` separately. Their fields are not checked against a schema and can include aliases, calculated fields, and joined columns.
+5. Review the `parsers` section: source tables, source columns, and parsed fields. A parser with no source tables usually reads through `table()` or another parser. Do not copy parsed field names onto source tables.
+6. Check newly proposed fields against several source queries. Reject parser artifacts, aliases, operators, literals, and low-context fields.
+7. Preserve curated descriptions unless public evidence supports a correction.
+8. Treat empty `splitHints` on new candidates as intentional. Write split hints manually only when the KQL expression is valid and the split produces useful review context.
+9. Record uncertainty. Do not turn frequency thresholds into claims about detection quality.
+10. Treat `-SharedSourceCandidatesOutputPath` output as leads, not filters. The extractor takes the first `DeviceVendor`, `DeviceProduct`, `ProcessName`, or `Facility` predicate anywhere in the query. It ignores `or` between values of the same field and can pick up predicates from joined subqueries on other tables. Rebuild every accepted filter from the parser or vendor documentation.
+11. XDR-only tables such as `EntraIdSignInEvents` are not in the Log Analytics metadata. Add their columns from the Defender XDR schema reference to a copy of the schema input, or they stay in `unverifiedTables`.
 
 ## Promote reviewed output
 

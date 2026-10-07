@@ -7,6 +7,12 @@
       "tableType": "Microsoft",
       "tableAPIState": "GA",
       "description": "Standard table used to verify catalog-backed discovery."
+    },
+    {
+      "name": "CommonSecurityLog",
+      "tableType": "Microsoft",
+      "tableAPIState": "GA",
+      "description": "Shared CEF table used to verify source candidates."
     }
   ]
 }

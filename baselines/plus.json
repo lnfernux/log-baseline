@@ -174,13 +174,14 @@
     "tierRule": "T1",
     "volumeClass": "low",
     "volumeDriver": "alert",
-    "isFree": true,
+    "isFree": false,
     "recommendedRetentionDays": 365,
     "platform": true,
     "sourceIds": [
       "log-horizon-classifications",
       "log-baseline-volume-model",
-      "log-baseline-classification-rules"
+      "log-baseline-classification-rules",
+      "microsoft-learn-log-billing"
     ]
   },
   {
@@ -278,8 +279,8 @@
   {
     "tableName": "AzureDiagnostics",
     "connector": "Azure Diagnostic Settings (legacy Azure Diagnostics mode)",
-    "classification": "secondary",
-    "valueRule": "C9",
+    "classification": "primary",
+    "valueRule": "C5",
     "category": "Infrastructure Diagnostics",
     "description": "Consolidated diagnostic logs from Azure resources including Key Vault, SQL, App Gateway, and more. Legacy collection mode with a 500-column cap; prefer resource-specific tables (AZFW*, AGW*, AKS*, AZKVAuditLogs) where the service offers them",
     "keywords": [
@@ -291,19 +292,23 @@
       "app gateway"
     ],
     "mitreSources": [
-      "Cloud Service: Cloud Service Modification"
+      "Cloud Service: Cloud Service Modification",
+      "Network Traffic: Network Traffic Flow"
     ],
     "recommendedTier": "analytics",
     "tierRule": "T5",
     "volumeClass": "high",
     "volumeDriver": "application-trace",
     "isFree": false,
-    "recommendedRetentionDays": 90,
+    "recommendedRetentionDays": 180,
     "sourceIds": [
       "log-horizon-classifications",
       "log-baseline-volume-model",
       "microsoft-learn-table-features",
-      "log-baseline-classification-rules"
+      "log-baseline-classification-rules",
+      "azure-sentinel-rule-corpus",
+      "acsc-priority-logs-siem",
+      "cisa-m-21-31-guidance"
     ]
   },
   {

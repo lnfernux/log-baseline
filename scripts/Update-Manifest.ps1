@@ -18,6 +18,7 @@ $releaseFiles = @(
     'high-value-fields.json',
     'implicit-consumers.json',
     'log-classifications.json',
+    'shared-table-sources.json',
     'sources.json',
     'taxonomy.json'
 )

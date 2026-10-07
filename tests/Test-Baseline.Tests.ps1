@@ -129,6 +129,67 @@ try {
     $untrackedData = Invoke-Validation -FixtureRoot $fixture
     Assert-Test ($untrackedData.ExitCode -ne 0) 'Untracked data JSON file was accepted'
 
+    $fixture = New-Fixture
+    $temporaryPaths.Add($fixture)
+    $sharedPath = Join-Path $fixture 'data' 'shared-table-sources.json'
+    $shared = @(Get-Content -LiteralPath $sharedPath -Raw | ConvertFrom-Json)
+    $shared[0].table = 'NotAClassifiedTable'
+    Write-FixtureJson -Path $sharedPath -Value $shared
+    & (Join-Path $root 'scripts' 'Update-Manifest.ps1') -RootPath $fixture | Out-Null
+    $unknownSharedTable = Invoke-Validation -FixtureRoot $fixture
+    Assert-Test ($unknownSharedTable.ExitCode -ne 0) 'Shared-table source on an unclassified table was accepted'
+
+    $fixture = New-Fixture
+    $temporaryPaths.Add($fixture)
+    $sharedPath = Join-Path $fixture 'data' 'shared-table-sources.json'
+    $shared = @(Get-Content -LiteralPath $sharedPath -Raw | ConvertFrom-Json)
+    $shared[0].tierRule = 'T5'
+    Write-FixtureJson -Path $sharedPath -Value $shared
+    & (Join-Path $root 'scripts' 'Update-Manifest.ps1') -RootPath $fixture | Out-Null
+    $staleT5 = Invoke-Validation -FixtureRoot $fixture
+    Assert-Test ($staleT5.ExitCode -ne 0) 'T5 on a shared table with lake support was accepted'
+
+    $fixture = New-Fixture
+    $temporaryPaths.Add($fixture)
+    $sharedPath = Join-Path $fixture 'data' 'shared-table-sources.json'
+    $shared = @(Get-Content -LiteralPath $sharedPath -Raw | ConvertFrom-Json)
+    $shared[0].filter = 'DeviceVendor in~ ("Fixture", "FixtureTwo")'
+    Write-FixtureJson -Path $sharedPath -Value $shared
+    & (Join-Path $root 'scripts' 'Update-Manifest.ps1') -RootPath $fixture | Out-Null
+    $unsupportedOperator = Invoke-Validation -FixtureRoot $fixture
+    Assert-Test ($unsupportedOperator.ExitCode -ne 0) 'Shared-table filter with an operator transformations reject was accepted'
+
+    $fixture = New-Fixture
+    $temporaryPaths.Add($fixture)
+    $sharedPath = Join-Path $fixture 'data' 'shared-table-sources.json'
+    $shared = @(Get-Content -LiteralPath $sharedPath -Raw | ConvertFrom-Json)
+    $shared[0].filter = 'DeviceVendor =~ "Fixture" or DeviceVendor =~ "(FixtureTwo)"'
+    Write-FixtureJson -Path $sharedPath -Value $shared
+    & (Join-Path $root 'scripts' 'Update-Manifest.ps1') -RootPath $fixture | Out-Null
+    $bareOr = Invoke-Validation -FixtureRoot $fixture
+    Assert-Test ($bareOr.ExitCode -ne 0) 'Shared-table filter with a bare top-level or was accepted'
+
+    $fixture = New-Fixture
+    $temporaryPaths.Add($fixture)
+    $sharedPath = Join-Path $fixture 'data' 'shared-table-sources.json'
+    $shared = @(Get-Content -LiteralPath $sharedPath -Raw | ConvertFrom-Json)
+    $analyticsSource = @($shared | Where-Object recommendedTier -eq 'analytics')[0]
+    $analyticsSource | Add-Member -NotePropertyName splitHints -NotePropertyValue @([pscustomobject]@{ description = 'Fixture'; kql = 'DeviceAction =~ "deny"' }) -Force
+    Write-FixtureJson -Path $sharedPath -Value $shared
+    & (Join-Path $root 'scripts' 'Update-Manifest.ps1') -RootPath $fixture | Out-Null
+    $analyticsSplit = Invoke-Validation -FixtureRoot $fixture
+    Assert-Test ($analyticsSplit.ExitCode -ne 0) 'Split hints on an Analytics shared-table source were accepted'
+
+    $fixture = New-Fixture
+    $temporaryPaths.Add($fixture)
+    $highValuePath = Join-Path $fixture 'data' 'high-value-fields.json'
+    $highValue = Get-Content -LiteralPath $highValuePath -Raw | ConvertFrom-Json
+    @($highValue.PSObject.Properties)[0].Value.splitHints = @([pscustomobject]@{ description = 'Fixture'; kql = 'OperationName has_any ("a", "b")' })
+    Write-FixtureJson -Path $highValuePath -Value $highValue
+    & (Join-Path $root 'scripts' 'Update-Manifest.ps1') -RootPath $fixture | Out-Null
+    $tableSplitOperator = Invoke-Validation -FixtureRoot $fixture
+    Assert-Test ($tableSplitOperator.ExitCode -ne 0) 'Table split hint with an operator transformations reject was accepted'
+
     $artifactRootA = Join-Path ([System.IO.Path]::GetTempPath()) "log-baseline-artifact-a-$([guid]::NewGuid().ToString('N'))"
     $artifactRootB = Join-Path ([System.IO.Path]::GetTempPath()) "log-baseline-artifact-b-$([guid]::NewGuid().ToString('N'))"
     $temporaryPaths.Add($artifactRootA)
@@ -145,6 +206,7 @@ try {
             $entryNames = @($archiveEntries.Entries.FullName)
             Assert-Test ('data/taxonomy.json' -in $entryNames) 'Release artifact omitted data/taxonomy.json'
             Assert-Test ('data/sources.json' -in $entryNames) 'Release artifact omitted data/sources.json'
+            Assert-Test ('data/shared-table-sources.json' -in $entryNames) 'Release artifact omitted data/shared-table-sources.json'
             Assert-Test ('baselines/minimum.json' -in $entryNames) 'Release artifact omitted baselines/minimum.json'
             Assert-Test ('baselines/recommended.json' -in $entryNames) 'Release artifact omitted baselines/recommended.json'
             Assert-Test ('baselines/plus.json' -in $entryNames) 'Release artifact omitted baselines/plus.json'

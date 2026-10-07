@@ -6,5 +6,9 @@
   {
     "tableName": "FixtureSignin_CL",
     "category": "Identity & Access"
+  },
+  {
+    "tableName": "FixtureParser",
+    "category": "Identity & Access"
   }
 ]

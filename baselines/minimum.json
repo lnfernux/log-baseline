@@ -174,13 +174,14 @@
     "tierRule": "T1",
     "volumeClass": "low",
     "volumeDriver": "alert",
-    "isFree": true,
+    "isFree": false,
     "recommendedRetentionDays": 365,
     "platform": true,
     "sourceIds": [
       "log-horizon-classifications",
       "log-baseline-volume-model",
-      "log-baseline-classification-rules"
+      "log-baseline-classification-rules",
+      "microsoft-learn-log-billing"
     ]
   },
   {

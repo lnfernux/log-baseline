@@ -1,0 +1,12 @@
+{
+  "tables": [
+    {
+      "name": "FixtureStandardTable",
+      "columns": [
+        { "name": "TimeGenerated", "type": "datetime" },
+        { "name": "SourceAddress", "type": "string" },
+        { "name": "DestinationAddress", "type": "string" }
+      ]
+    }
+  ]
+}
