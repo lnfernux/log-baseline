@@ -1,8 +1,8 @@
 # Microsoft Sentinel Log Baseline
 
 [![Validate baseline](https://github.com/lnfernux/log-baseline/actions/workflows/validate.yml/badge.svg)](https://github.com/lnfernux/log-baseline/actions/workflows/validate.yml)
-[![Data version](https://img.shields.io/badge/data-0.4.0-00cc00)](CHANGELOG.md)
-[![Schema version](https://img.shields.io/badge/schema-1.3.0-475569)](data/manifest.json)
+[![Data version](https://img.shields.io/badge/data-0.5.0-00cc00)](CHANGELOG.md)
+[![Schema version](https://img.shields.io/badge/schema-1.4.0-475569)](data/manifest.json)
 [![License](https://img.shields.io/badge/license-CC%20BY%204.0%20%2B%20MIT-475569)](LICENSE.md)
 
 > [!IMPORTANT]
@@ -178,7 +178,7 @@ Plan support comes from the shared table. Per-source volume comes from summing `
 
 ### Defender-native tables
 
-`defenderNative: true` marks tables that are queryable in Defender advanced hunting without ingestion into a workspace ([schema reference](https://learn.microsoft.com/defender-xdr/advanced-hunting-schema-tables)). Some of them, such as `CloudKeyVaultEvents` and `EntraIdSignInEvents`, have no Log Analytics table at all.
+`defenderNative: true` marks tables that are queryable in Defender advanced hunting without ingestion into a workspace ([schema reference](https://learn.microsoft.com/defender-xdr/advanced-hunting-schema-tables)). Some of them, such as `CloudKeyVaultEvents` and `EntraIdSignInEvents`, have no Log Analytics table at all. Those records set `logAnalyticsTable: false`. Their tier and retention describe a custom ingestion path, and consumers should not suggest table plans or lake moves for them.
 
 `xdrStreamable: true` means the table is listed for the [Microsoft Defender XDR connector](https://learn.microsoft.com/azure/sentinel/connect-microsoft-365-defender) in Microsoft Sentinel. It does not describe the [streaming API](https://learn.microsoft.com/defender-xdr/supported-event-types).
 

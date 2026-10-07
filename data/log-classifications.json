@@ -15686,7 +15686,8 @@
       "microsoft-learn-log-billing",
       "microsoft-loganalytics-metadata"
     ],
-    "defenderNative": true
+    "defenderNative": true,
+    "logAnalyticsTable": false
   },
   {
     "tableName": "AADSpnSignInEventsBeta",
@@ -15730,7 +15731,8 @@
       "microsoft-learn-log-billing",
       "microsoft-loganalytics-metadata"
     ],
-    "defenderNative": true
+    "defenderNative": true,
+    "logAnalyticsTable": false
   },
   {
     "tableName": "EntraIdSignInEvents",
@@ -15772,7 +15774,8 @@
       "microsoft-learn-log-billing",
       "microsoft-loganalytics-metadata"
     ],
-    "defenderNative": true
+    "defenderNative": true,
+    "logAnalyticsTable": false
   },
   {
     "tableName": "EntraIdSpnSignInEvents",
@@ -15812,7 +15815,8 @@
       "microsoft-learn-log-billing",
       "microsoft-loganalytics-metadata"
     ],
-    "defenderNative": true
+    "defenderNative": true,
+    "logAnalyticsTable": false
   },
   {
     "tableName": "BehaviorEntities",
@@ -15928,7 +15932,8 @@
       "microsoft-learn-log-billing",
       "microsoft-loganalytics-metadata"
     ],
-    "defenderNative": true
+    "defenderNative": true,
+    "logAnalyticsTable": false
   },
   {
     "tableName": "IdentityAccountInfo",
@@ -16161,9 +16166,11 @@
       "microsoft-learn-defender-xdr-connector",
       "microsoft-learn-defender-xdr-schema",
       "microsoft-learn-log-billing",
-      "microsoft-learn-table-features"
+      "microsoft-learn-table-features",
+      "microsoft-loganalytics-metadata"
     ],
-    "defenderNative": true
+    "defenderNative": true,
+    "logAnalyticsTable": false
   },
   {
     "tableName": "CloudDnsEvents",
@@ -16242,9 +16249,11 @@
       "microsoft-learn-defender-xdr-schema",
       "microsoft-learn-log-billing",
       "microsoft-learn-sentinel-data-lake",
-      "microsoft-learn-table-features"
+      "microsoft-learn-table-features",
+      "microsoft-loganalytics-metadata"
     ],
-    "defenderNative": true
+    "defenderNative": true,
+    "logAnalyticsTable": false
   },
   {
     "tableName": "CloudKeyVaultEvents",
@@ -16272,9 +16281,11 @@
     "sourceIds": [
       "microsoft-defender-portal-schema-observed",
       "log-baseline-classification-rules",
-      "log-baseline-volume-model"
+      "log-baseline-volume-model",
+      "microsoft-loganalytics-metadata"
     ],
-    "defenderNative": true
+    "defenderNative": true,
+    "logAnalyticsTable": false
   },
   {
     "tableName": "AADDomainServicesAccountLogon",
