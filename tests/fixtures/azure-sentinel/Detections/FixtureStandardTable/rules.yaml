@@ -1,8 +1,8 @@
 id: fixture-standard-one
 query: |
   FixtureStandardTable
-  | where SourceAddress == "192.0.2.1"
-  | project TimeGenerated, SourceAddress, DestinationAddress
+  | where Sourceaddress == "192.0.2.1"
+  | project TimeGenerated, Sourceaddress, DestinationAddress
 ---
 id: fixture-standard-two
 query: |
@@ -14,4 +14,6 @@ id: fixture-standard-three
 query: |
   FixtureStandardTable
   | where isnotempty(SourceAddress)
+  | extend RiskScore = 1
+  | where RiskScore > 0
   | project TimeGenerated, SourceAddress, DestinationAddress

@@ -70,6 +70,7 @@ $schemaMappings = @{
     'field-frequency-stats.json' = 'field-frequency-stats.schema.json'
     'custom-classifications-example.json' = 'log-classifications.schema.json'
     'taxonomy.json' = 'taxonomy.schema.json'
+    'shared-table-sources.json' = 'shared-table-sources.schema.json'
     'sources.json' = 'sources.schema.json'
     'manifest.json' = 'manifest.schema.json'
 }
@@ -89,6 +90,7 @@ if ($null -ne $manifest) {
         'high-value-fields.json',
         'implicit-consumers.json',
         'log-classifications.json',
+        'shared-table-sources.json',
         'sources.json',
         'taxonomy.json'
     )
@@ -213,6 +215,45 @@ foreach ($entry in $classifications) {
     }
 }
 
+$sharedSources = @(Read-BaselineJson (Join-Path $dataPath 'shared-table-sources.json'))
+# Transformations reject in~, has_any, has_all, hasprefix, and hassuffix.
+$unsupportedTransformKql = '(?i)in~|\bhas_(any|all)\b|\bhas(prefix|suffix)'
+
+function Test-TopLevelOr {
+    param([string]$Kql)
+    # Consumers combine filters with and/or, so a bare top-level `or` changes meaning.
+    $depth = 0
+    $tokens = [regex]::Replace($Kql, '"(?:[^"\\]|\\.)*"', '""') -split '(\(|\)|\bor\b)'
+    foreach ($token in $tokens) {
+        if ($token -eq '(') { $depth++ }
+        elseif ($token -eq ')') { $depth-- }
+        elseif ($token -eq 'or' -and $depth -eq 0) { return $true }
+    }
+    return $false
+}
+$sharedSourceIds = @($sharedSources | ForEach-Object { $_.sourceId })
+Assert-Baseline (@($sharedSourceIds | Sort-Object -Unique).Count -eq $sharedSourceIds.Count) 'Shared-table source IDs must be unique'
+foreach ($entry in $sharedSources) {
+    $label = "shared source $($entry.sourceId)"
+    Assert-Baseline ($entry.table -cin $tableNames) "${label}: unknown shared table $($entry.table)"
+    Assert-Baseline (($entry.valueRule -eq 'C9') -eq ($entry.classification -eq 'secondary')) "${label}: valueRule $($entry.valueRule) does not match classification $($entry.classification)"
+    $expectedTier = if ($entry.tierRule -in 'T3', 'T4') { 'datalake' } else { 'analytics' }
+    Assert-Baseline ($expectedTier -eq $entry.recommendedTier) "${label}: tierRule $($entry.tierRule) does not match recommendedTier $($entry.recommendedTier)"
+    Assert-Baseline (-not ($entry.valueRule -eq 'C9' -and $entry.tierRule -in 'T1', 'T3')) "${label}: secondary sources cannot use $($entry.tierRule)"
+    $tableSupportsLake = $entry.table -like '*_CL' -or $lakeTables.Contains([string]$entry.table)
+    if ($entry.recommendedTier -eq 'datalake') { Assert-Baseline $tableSupportsLake "${label}: datalake recommended but $($entry.table) has no Auxiliary/Lake support" }
+    if ($entry.tierRule -eq 'T5') { Assert-Baseline (-not $tableSupportsLake) "${label}: T5 requires a shared table without Auxiliary/Lake support" }
+    $splitHintKql = @(if ($entry.PSObject.Properties['splitHints']) { @($entry.splitHints) | ForEach-Object { $_.kql } })
+    if ($splitHintKql.Count -gt 0) { Assert-Baseline ($entry.recommendedTier -eq 'datalake') "${label}: split hints keep rows in Analytics and need a datalake recommendation" }
+    foreach ($kql in @($entry.filter) + $splitHintKql) {
+        Assert-Baseline ($kql -notmatch $unsupportedTransformKql) "${label}: KQL uses an operator that transformations do not support: $kql"
+        Assert-Baseline (-not (Test-TopLevelOr $kql)) "${label}: wrap KQL with a top-level or in parentheses: $kql"
+    }
+    foreach ($sourceId in @($entry.sourceIds)) {
+        Assert-Baseline ($sourceId -in $sourceIds) "${label}: unknown source ID $sourceId"
+    }
+}
+
 $customClassifications = @(Read-BaselineJson (Join-Path $dataPath 'custom-classifications-example.json'))
 foreach ($entry in $customClassifications) {
     Assert-Baseline ($entry.category -in $allowedCategories) "$($entry.tableName): invalid custom example category"
@@ -262,6 +303,9 @@ $highValueFields = Read-BaselineJson (Join-Path $dataPath 'high-value-fields.jso
 if ($null -ne $highValueFields) {
     foreach ($table in $highValueFields.PSObject.Properties) {
         Assert-Baseline (@($table.Value.highValueFields).Count -gt 0) "$($table.Name): highValueFields cannot be empty"
+        foreach ($hint in @($table.Value.splitHints)) {
+            Assert-Baseline ($hint.kql -notmatch $unsupportedTransformKql) "$($table.Name): split hint uses an operator that transformations do not support"
+        }
     }
 }
 

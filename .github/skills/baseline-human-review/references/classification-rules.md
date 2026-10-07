@@ -56,7 +56,15 @@ Decide the tier second, in this order. The first matching rule wins.
 | 4 | T3 | datalake | Primary, `volumeClass` high or very-high, and the generic detection use is aggregation, threat-intelligence matching, baselining, or investigation that KQL jobs and summary rules support. |
 | 5 | T4 | datalake | Low-touch context queried during investigations rather than for alerting. |
 
-Tier support is a documented platform fact. Security value is a judgment. Keep them separate. Never recommend an unsupported plan. DCR-based custom tables (`_CL`) support all plans. Classic custom tables from the HTTP Data Collector API are not DCR-based, so state in the proposal context that they need migrating to DCR-based tables before a move to the lake. Support for the HTTP Data Collector API ended on September 14, 2026.
+Tier support is a documented platform fact. Security value is a judgment. Keep them separate. Never recommend an unsupported plan.
+
+**Analytic rules do not force the analytics tier.** A table referenced by analytic rules can still belong in the data lake. KQL jobs and summary rules promote the subset that detections need into an analytics table, and the rule runs against the promoted table. Use the rule count as usage evidence, never as a tier rule. Before choosing T1 or T2 because of rule usage, check how the rules use the table:
+
+- T1 needs single-event matching where the data lake latency (up to 15 minutes plus job scheduling) is not acceptable for the generic use case.
+- T2 needs the table to be a low-volume join or lookup target for analytics-tier detections. Confirm the joins in the rule queries.
+- Rules that aggregate, baseline, or alert on inventory, health, or posture snapshots fit T3 or T4 with a promotion path. State the promotion path in the proposal context.
+
+DCR-based custom tables (`_CL`) support all plans. Classic custom tables from the HTTP Data Collector API are not DCR-based, so state in the proposal context that they need migrating to DCR-based tables before a move to the lake. Support for the HTTP Data Collector API ended on September 14, 2026.
 
 For T5 tables, the proposal context states that long-term retention uses the mirrored lake copy and that volume is reduced with ingest-time filtering or collection scope. For T3 tables with some single-event detections, note the split pattern: a split transformation keeps the matching rows in analytics, mirrored to the lake, and sends the rest to a separate `_SPLT` table in the lake.
 
@@ -87,11 +95,22 @@ Use only `90`, `180`, or `365` days:
 
 Retention is a generic default. Explicitly state that incident history, regulation, threat model, and business processes can require a different value.
 
+## Sources inside shared tables
+
+When many sources share a table (`CommonSecurityLog`, `Syslog`), classify each source in `data/shared-table-sources.json` instead of inventing a table name. Use the same value and tier rules. The `filter` must select only that source's rows and should match the parser's filter when a parser exists. Plan support and T5 come from the shared table. The tier is implemented as a split transformation on the shared table, so state that in the proposal context.
+
+Filters and `splitHints` must use only operators that [transformations support](https://learn.microsoft.com/azure/azure-monitor/data-collection/data-collection-transformations-kql#supported-scalar-operators). Write `in~` and `has_any` out with `or`, and wrap any top-level `or` in parentheses. A split hint selects the rows a data lake source keeps in Analytics. Only use field values that appear in the vendor's parser, rules, or documentation. Negated predicates such as `DeviceAction !~ "allow"` are true for empty values, so guard them with `isnotempty()` or rows without the field stay in Analytics.
+
+Filters can overlap, for example `linux-auth` (by facility) and process-based sources that log to `auth`. Overlap does not break the split condition, because sources are combined with `or`, but per-source volume double-counts the shared rows. Prefer filters that do not overlap, and name known overlaps in the proposal context.
+
+A table has one split rule, so the deployable condition combines every deployed source on the table (see the README). The shared table's own record classifies only the remainder, the rows that match no source. Retention is per table: all data lake rows share one `_SPLT` table, so a source's `recommendedRetentionDays` is advisory. When a proposal sets a source's retention above the other sources on the same table, say that it raises the `_SPLT` retention for all of them.
+
 ## Other fields
 
 - `isFree`: set only from current Microsoft documentation. Do not infer from similar tables.
 - `platform`: set only when the table is platform-owned rather than ordinary connector ingestion.
 - `xdrStreamable`: set only with documented Defender XDR streaming support.
+- `defenderNative`: set `true` when the table is queryable in Defender advanced hunting without ingestion into a workspace. Evidence is the [Defender XDR schema reference](https://learn.microsoft.com/defender-xdr/advanced-hunting-schema-tables). Tier and retention still describe the Sentinel workspace model. Do not lower them because of Defender or ISOC included retention. That is deployment context for consumers.
 - `status` and `replacedBy`: require public lifecycle evidence and must appear together.
 - `mitreSources`: include only applicable MITRE ATT&CK data-source identifiers supported by the event semantics.
 - `keywords`: use concrete searchable concepts from the table purpose. Avoid generic filler.

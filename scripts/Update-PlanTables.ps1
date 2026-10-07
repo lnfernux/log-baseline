@@ -36,10 +36,11 @@ foreach ($plan in @(
     @{ FileName = 'basic-plan-tables.json'; Tables = $basicTables },
     @{ FileName = 'auxiliary-plan-tables.json'; Tables = $auxiliaryTables }
 )) {
+    $sortedTables = [string[]]@([System.Collections.Generic.SortedSet[string]]::new([string[]]$plan.Tables, [System.StringComparer]::Ordinal))
     $document = [ordered]@{
         source = $sourceUrl
         generatedOn = $ObservedOn.ToString('yyyy-MM-dd')
-        tables = @($plan.Tables | Sort-Object -Unique)
+        tables = $sortedTables
     }
     $json = (($document | ConvertTo-Json -Depth 5) + "`n").Replace("`r`n", "`n").Replace("`r", "`n")
     [System.IO.File]::WriteAllText((Join-Path $dataPath $plan.FileName), $json, $utf8NoBom)

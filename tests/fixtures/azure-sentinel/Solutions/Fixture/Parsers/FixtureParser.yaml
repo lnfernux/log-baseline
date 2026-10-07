@@ -1,0 +1,12 @@
+id: fixture-parser
+Function:
+  Title: Fixture parser over a custom and a standard table
+FunctionName: FixtureParser
+FunctionAlias: FixtureParser
+FunctionQuery: |
+  let security = FixtureSecurity_CL
+      | extend UserName = Account;
+  let standard = FixtureStandardTable
+      | where isnotempty(SourceAddress);
+  union security, standard
+  | project TimeGenerated, UserName, SourceAddress

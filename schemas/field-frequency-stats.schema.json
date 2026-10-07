@@ -19,6 +19,22 @@
         "type": "object",
         "additionalProperties": { "type": "integer", "minimum": 1 }
       }
+    },
+    "unverifiedTables": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "parsers": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["tables", "ruleCount", "outputColumnsVerified", "sourceColumns", "fields"],
+        "properties": {
+          "tables": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "ruleCount": { "type": "integer", "minimum": 1 },
+          "outputColumnsVerified": { "type": "boolean" },
+          "sourceColumns": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "fields": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 1 } }
+        },
+        "additionalProperties": false
+      }
     }
   },
   "additionalProperties": false

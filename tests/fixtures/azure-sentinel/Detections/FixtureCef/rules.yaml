@@ -1,0 +1,10 @@
+id: fixture-cef-direct
+query: |
+  CommonSecurityLog
+  | where DeviceVendor == "OtherVendor" and DeviceProduct == "Gateway"
+  | project TimeGenerated, DeviceAction
+---
+id: fixture-cef-parser
+query: |
+  FixtureCefParser
+  | where EventVendor == "FixtureVendor"

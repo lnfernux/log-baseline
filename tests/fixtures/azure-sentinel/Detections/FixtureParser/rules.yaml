@@ -1,0 +1,19 @@
+id: fixture-parser-one
+query: |
+  FixtureParser
+  | where UserName == "fixture"
+  | project TimeGenerated, UserName
+---
+id: fixture-parser-two
+query: |
+  FixtureParser()
+  | where SourceAddress == "192.0.2.1"
+  | extend Calculated = 1
+  | where Calculated > 0
+---
+id: fixture-parser-three
+query: |
+  let parsed = FixtureParser;
+  parsed
+  | where isnotempty(UserName)
+  | project TimeGenerated, UserName
