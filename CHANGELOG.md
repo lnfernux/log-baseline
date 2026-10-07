@@ -8,6 +8,10 @@ The project uses semantic versioning for the data contract:
 - Minor releases add backward-compatible fields, tables, sources, or taxonomy entries.
 - Major releases change or remove existing contract fields.
 
+## 0.5.0 - 2026-10-07
+
+- Added optional `logAnalyticsTable` (schema 1.4.0). It is `false` on the 8 Defender advanced hunting tables that have no Log Analytics table: `AADSignInEventsBeta`, `AADSpnSignInEventsBeta`, `EntraIdSignInEvents`, `EntraIdSpnSignInEvents`, `CallActivityEvents`, `MessageContents`, `CloudPolicyEnforcementEvents`, and `CloudKeyVaultEvents`. Validation requires these records to be `defenderNative`, not `xdrStreamable`, and absent from the plan lists.
+
 ## 0.4.0 - 2026-10-06
 
 - Added optional `defenderNative` (schema 1.3.0) and set it on 67 tables queryable in Defender advanced hunting without ingestion. The README documents how consumers apply Defender and ISOC included retention as deployment context.

@@ -151,6 +151,16 @@ try {
 
     $fixture = New-Fixture
     $temporaryPaths.Add($fixture)
+    $classificationsPath = Join-Path $fixture 'data' 'log-classifications.json'
+    $classifications = @(Get-Content -LiteralPath $classificationsPath -Raw | ConvertFrom-Json)
+    @($classifications | Where-Object tableName -eq 'SigninLogs')[0] | Add-Member -NotePropertyName logAnalyticsTable -NotePropertyValue $false -Force
+    Write-FixtureJson -Path $classificationsPath -Value $classifications
+    & (Join-Path $root 'scripts' 'Update-Manifest.ps1') -RootPath $fixture | Out-Null
+    $missingTable = Invoke-Validation -FixtureRoot $fixture
+    Assert-Test ($missingTable.ExitCode -ne 0) 'logAnalyticsTable false on a table that is not defenderNative was accepted'
+
+    $fixture = New-Fixture
+    $temporaryPaths.Add($fixture)
     $sharedPath = Join-Path $fixture 'data' 'shared-table-sources.json'
     $shared = @(Get-Content -LiteralPath $sharedPath -Raw | ConvertFrom-Json)
     $shared[0].filter = 'DeviceVendor in~ ("Fixture", "FixtureTwo")'

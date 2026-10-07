@@ -41,6 +41,7 @@
       "replacedBy": { "type": "array", "items": { "type": "string", "minLength": 1 } },
       "xdrStreamable": { "type": "boolean" },
       "defenderNative": { "type": "boolean" },
+      "logAnalyticsTable": { "const": false },
       "platform": { "type": "boolean" },
       "domainId": { "type": "string", "minLength": 1 },
       "logTypeId": { "type": "string", "minLength": 1 },

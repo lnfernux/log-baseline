@@ -213,6 +213,12 @@ foreach ($entry in $classifications) {
             Assert-Baseline ($replacement -in $tableNames) "$($entry.tableName): missing replacement table $replacement"
         }
     }
+    if ($entry.PSObject.Properties.Name -contains 'logAnalyticsTable') {
+        Assert-Baseline ($entry.logAnalyticsTable -eq $false) "$($entry.tableName): set logAnalyticsTable only to false"
+        Assert-Baseline ($entry.PSObject.Properties.Name -contains 'defenderNative' -and $entry.defenderNative) "$($entry.tableName): a table without a Log Analytics table must be defenderNative"
+        Assert-Baseline (-not ($entry.PSObject.Properties.Name -contains 'xdrStreamable' -and $entry.xdrStreamable)) "$($entry.tableName): a table without a Log Analytics table cannot stream to Sentinel"
+        Assert-Baseline (-not $lakeTables.Contains([string]$entry.tableName) -and $entry.tableName -notlike '*_CL') "$($entry.tableName): a table without a Log Analytics table cannot have plan support"
+    }
 }
 
 $sharedSources = @(Read-BaselineJson (Join-Path $dataPath 'shared-table-sources.json'))
