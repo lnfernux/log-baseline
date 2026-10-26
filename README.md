@@ -1,7 +1,7 @@
 # Microsoft Sentinel Log Baseline
 
 [![Validate baseline](https://github.com/lnfernux/log-baseline/actions/workflows/validate.yml/badge.svg)](https://github.com/lnfernux/log-baseline/actions/workflows/validate.yml)
-[![Data version](https://img.shields.io/badge/data-0.5.0-00cc00)](CHANGELOG.md)
+[![Data version](https://img.shields.io/badge/data-0.5.1-00cc00)](CHANGELOG.md)
 [![Schema version](https://img.shields.io/badge/schema-1.4.0-475569)](data/manifest.json)
 [![License](https://img.shields.io/badge/license-CC%20BY%204.0%20%2B%20MIT-475569)](LICENSE.md)
 
