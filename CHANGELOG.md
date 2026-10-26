@@ -8,6 +8,12 @@ The project uses semantic versioning for the data contract:
 - Minor releases add backward-compatible fields, tables, sources, or taxonomy entries.
 - Major releases change or remove existing contract fields.
 
+## 0.5.1 - Unreleased
+
+- Split hints for `SigninLogs`, `AADNonInteractiveUserSignInLogs`, and `AuditLogs` now keep emergency access account activity in Analytics, so alert rules can see every sign-in and action ([#10](https://github.com/lnfernux/log-baseline/issues/10)). Microsoft recommends alerting on all emergency access account use ([Manage emergency access accounts](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/security-emergency-access)). The hints match `UserId` and `InitiatedBy.user.id` against placeholders that you replace with your accounts' object IDs. If you leave the placeholders, the condition matches no rows.
+- Fixed the `SigninLogs` and `AADNonInteractiveUserSignInLogs` split hints to compare `ResultType` with `"0"`. `ResultType` is a string, and transformations reject `ResultType != 0` with "Incompatible operands". The three hints were compiled as data collection rule transformations against a live workspace.
+- Wrapped the sign-in split hints in parentheses, so they combine safely with other conditions.
+
 ## 0.5.0 - 2026-10-07
 
 - Added optional `logAnalyticsTable` (schema 1.4.0). It is `false` on the 8 Defender advanced hunting tables that have no Log Analytics table: `AADSignInEventsBeta`, `AADSpnSignInEventsBeta`, `EntraIdSignInEvents`, `EntraIdSpnSignInEvents`, `CallActivityEvents`, `MessageContents`, `CloudPolicyEnforcementEvents`, and `CloudKeyVaultEvents`. Validation requires these records to be `defenderNative`, not `xdrStreamable`, and absent from the plan lists.

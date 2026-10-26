@@ -20,8 +20,8 @@
     ],
     "splitHints": [
       {
-        "description": "Keep failures and risky sign-ins in Analytics; routine token refreshes to Data Lake",
-        "kql": "ResultType != 0 or RiskLevelDuringSignIn != \"none\""
+        "description": "Keep failures, risky sign-ins, and all emergency access account sign-ins in Analytics; routine token refreshes to Data Lake. Replace the placeholders with the object IDs of your emergency access accounts.",
+        "kql": "(ResultType != \"0\" or RiskLevelDuringSignIn != \"none\" or UserId in (\"<emergency-account-object-id-1>\", \"<emergency-account-object-id-2>\"))"
       }
     ]
   },
@@ -214,8 +214,8 @@
     ],
     "splitHints": [
       {
-        "description": "Keep role/group changes, credential changes, and app modifications in Analytics",
-        "kql": "(OperationName has \"Add member\" or OperationName has \"Remove member\" or OperationName has \"Add owner\" or OperationName has \"Remove owner\" or OperationName has \"role\" or OperationName has \"password\" or OperationName has \"credential\" or OperationName has \"application\" or OperationName has \"service principal\" or OperationName has \"policy\" or OperationName has \"conditional access\")"
+        "description": "Keep role/group changes, credential changes, app modifications, and all actions by emergency access accounts in Analytics. Replace the placeholders with the object IDs of your emergency access accounts.",
+        "kql": "(OperationName has \"Add member\" or OperationName has \"Remove member\" or OperationName has \"Add owner\" or OperationName has \"Remove owner\" or OperationName has \"role\" or OperationName has \"password\" or OperationName has \"credential\" or OperationName has \"application\" or OperationName has \"service principal\" or OperationName has \"policy\" or OperationName has \"conditional access\" or tostring(InitiatedBy.user.id) in (\"<emergency-account-object-id-1>\", \"<emergency-account-object-id-2>\"))"
       }
     ]
   },
@@ -1933,8 +1933,8 @@
     ],
     "splitHints": [
       {
-        "description": "Keep failed sign-ins, risky sign-ins, and MFA events in Analytics",
-        "kql": "ResultType != 0 or RiskLevelDuringSignIn != \"none\" or ConditionalAccessStatus == \"failure\" or AuthenticationRequirement == \"multiFactorAuthentication\""
+        "description": "Keep failed sign-ins, risky sign-ins, MFA events, and all emergency access account sign-ins in Analytics. Replace the placeholders with the object IDs of your emergency access accounts.",
+        "kql": "(ResultType != \"0\" or RiskLevelDuringSignIn != \"none\" or ConditionalAccessStatus == \"failure\" or AuthenticationRequirement == \"multiFactorAuthentication\" or UserId in (\"<emergency-account-object-id-1>\", \"<emergency-account-object-id-2>\"))"
       }
     ]
   },
