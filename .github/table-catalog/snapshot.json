@@ -1,6 +1,6 @@
 {
   "source": "https://api.loganalytics.io/v1/metadata",
-  "observedOn": "2026-10-12",
+  "observedOn": "2026-10-26",
   "tables": [
     {
       "name": "AACAudit",
@@ -666,7 +666,7 @@
       "name": "AgentFabricFlowLogs",
       "tableType": "Microsoft",
       "tableAPIState": "Any",
-      "description": "Per-connection flow records emitted by Agent Fabric policy enforcement, including source/destination identity, the allow/deny/inspect verdict, protocol, and L7 request shape. Used to build the flow map and live-inspect experiences and to audit policy decisions."
+      "description": "One row for each request that goes through an Agent Fabric, and for each connection that ends without a request: the source and destination members, the destination host, the verdict and its reason, the policy group and rule that decided, and the status, size, and duration of the request. Use it to audit policy decisions and to investigate traffic."
     },
     {
       "name": "AgentsInfo",
@@ -4297,6 +4297,30 @@
       "tableType": "Microsoft",
       "tableAPIState": "Any",
       "description": "Connection Monitor test result records."
+    },
+    {
+      "name": "NWPacketCaptureDnsQuery",
+      "tableType": "Microsoft",
+      "tableAPIState": "Any",
+      "description": "DNS queries and any matching responses observed in packet captures."
+    },
+    {
+      "name": "NWPacketCaptureHttpTransaction",
+      "tableType": "Microsoft",
+      "tableAPIState": "Any",
+      "description": "HTTP transactions observed in packet captures. A record may contain only request or response evidence."
+    },
+    {
+      "name": "NWPacketCaptureNetworkSession",
+      "tableType": "Microsoft",
+      "tableAPIState": "Any",
+      "description": "Network flows observed in packet captures, including endpoints, packet and byte counts, and connection states."
+    },
+    {
+      "name": "NWPacketCaptureTlsSession",
+      "tableType": "Microsoft",
+      "tableAPIState": "Any",
+      "description": "Observed TLS handshake details, including negotiated parameters and certificates."
     },
     {
       "name": "OAuthAppInfo",

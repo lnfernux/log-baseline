@@ -1,75 +1,39 @@
 # Microsoft Sentinel table catalog review
 
-Observed: 2026-10-12
+Observed: 2026-10-26
 Source: https://api.loganalytics.io/v1/metadata
-Previous tables: 931
-Current tables: 941
-Added: 10
+Previous tables: 941
+Current tables: 945
+Added: 4
 Removed from catalog: 0
 
 A table disappearing from this catalog does not prove that the service or table was removed. Confirm every change against public documentation before editing the baseline.
 
 ## Added tables
 
-### AgentFabricFlowLogs
+### NWPacketCaptureDnsQuery
 
 - Type: Microsoft
 - API state: Any
-- Description: Per-connection flow records emitted by Agent Fabric policy enforcement, including source/destination identity, the allow/deny/inspect verdict, protocol, and L7 request shape. Used to build the flow map and live-inspect experiences and to audit policy decisions.
+- Description: DNS queries and any matching responses observed in packet captures.
 
-### ASimEmailEventLogs
-
-- Type: Microsoft
-- API state: Any
-- Description: Microsoft Sentinel normalized email event logs table.
-
-### CallActivityEvents
+### NWPacketCaptureHttpTransaction
 
 - Type: Microsoft
 - API state: Any
-- Description: This table shows information about activities performed during Microsoft Teams calls by Microsoft Defender for Office 365.
+- Description: HTTP transactions observed in packet captures. A record may contain only request or response evidence.
 
-### HorizonDBAutovacuumStats
-
-- Type: Microsoft
-- API state: Any
-- Description: Information related to autovacuum and schema level statistics of an Azure HorizonDB replica.
-
-### HorizonDBPgStatActivitySessions
+### NWPacketCaptureNetworkSession
 
 - Type: Microsoft
 - API state: Any
-- Description: Session's data collected from PostgreSQL pg_stat_activity system view of an Azure HorizonDB replica. Contains one row per connection referred here as a backend and the data is collected at an interval of 5-minutes.
+- Description: Network flows observed in packet captures, including endpoints, packet and byte counts, and connection states.
 
-### HorizonDBQueryStoreQueryText
-
-- Type: Microsoft
-- API state: Any
-- Description: Query text captured by query store in Azure HorizonDB replica.
-
-### HorizonDBQueryStoreRuntimeStats
+### NWPacketCaptureTlsSession
 
 - Type: Microsoft
 - API state: Any
-- Description: Query store runtime statistics related to query execution information of an Azure HorizonDB replica.
-
-### HorizonDBQueryStoreWaitsStats
-
-- Type: Microsoft
-- API state: Any
-- Description: Query store wait statistics sampled of an Azure HorizonDB replica. Wait event types combine different wait events into buckets by category or type.
-
-### HorizonDBServerLogs
-
-- Type: Microsoft
-- API state: Any
-- Description: PostgreSQL server logs of an Azure HorizonDB replica.
-
-### HorizonDBTransactionsStats
-
-- Type: Microsoft
-- API state: Any
-- Description: Remaining transactions and multixact idenfiers for each database of an Azure HorizonDB replica.
+- Description: Observed TLS handshake details, including negotiated parameters and certificates.
 
 ## Removed from catalog
 
