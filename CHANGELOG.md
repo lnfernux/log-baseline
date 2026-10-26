@@ -8,6 +8,15 @@ The project uses semantic versioning for the data contract:
 - Minor releases add backward-compatible fields, tables, sources, or taxonomy entries.
 - Major releases change or remove existing contract fields.
 
+## 0.5.1 - Unreleased
+
+- Split hints for `SigninLogs`, `AADNonInteractiveUserSignInLogs`, and `AuditLogs` now keep emergency access account activity in Analytics, so alert rules can see every sign-in and action ([#10](https://github.com/lnfernux/log-baseline/issues/10)). Microsoft recommends alerting on all emergency access account use ([Manage emergency access accounts](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/security-emergency-access)). The hints match `UserId` and `InitiatedBy.user.id` against placeholders that you replace with your accounts' object IDs. If you leave the placeholders, the condition matches no rows.
+- Fixed the `SigninLogs` and `AADNonInteractiveUserSignInLogs` split hints to compare `ResultType` with `"0"`. `ResultType` is a string, and transformations reject `ResultType != 0` with "Incompatible operands". The three hints were compiled as data collection rule transformations against a live workspace.
+- Wrapped the sign-in split hints in parentheses, so they combine safely with other conditions.
+- Fixed the `W3CIISLog` split hint to compare `toint(scStatus)` with 400. `scStatus` is a string, and transformations reject `scStatus >= 400` with "Incompatible operands". The hint is now wrapped in parentheses and was compiled as a data collection rule transformation against a live workspace.
+- Fixed three more split hints that transformations rejected. `DeviceNetworkEvents` and `SecurityEvent` now use `tolong()` on `RemotePort` and `EventID`, because transformations treat number literals in `in` lists as long and reject int columns. `OfficeActivity` compares the string column `ExternalAccess` with `=~ "true"` instead of the boolean `true`. The `DeviceNetworkEvents` and `OfficeActivity` hints are now wrapped in parentheses.
+- Compiled every split condition as a data collection rule transformation against a live workspace using the real table schemas: 15 table hints, 57 shared-table source filters, 5 source filter and hint pairs, and the combined `CommonSecurityLog` and `Syslog` rules from the web builder. `AzureDiagnostics` and `WindowsFirewall` used the column types from the Azure Monitor table reference.
+
 ## 0.5.0 - 2026-10-07
 
 - Added optional `logAnalyticsTable` (schema 1.4.0). It is `false` on the 8 Defender advanced hunting tables that have no Log Analytics table: `AADSignInEventsBeta`, `AADSpnSignInEventsBeta`, `EntraIdSignInEvents`, `EntraIdSpnSignInEvents`, `CallActivityEvents`, `MessageContents`, `CloudPolicyEnforcementEvents`, and `CloudKeyVaultEvents`. Validation requires these records to be `defenderNative`, not `xdrStreamable`, and absent from the plan lists.
