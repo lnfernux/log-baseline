@@ -1,6 +1,6 @@
 {
   "source": "https://api.loganalytics.io/v1/metadata",
-  "observedOn": "2026-10-26",
+  "observedOn": "2026-11-09",
   "tables": [
     {
       "name": "AACAudit",
@@ -3051,6 +3051,12 @@
       "description": "Service logs emitted by the Edge Action platform."
     },
     {
+      "name": "EdgeSecurityEvents",
+      "tableType": "Microsoft",
+      "tableAPIState": "Any",
+      "description": "Security events reported by Microsoft Edge for Business."
+    },
+    {
       "name": "EGNFailedHttpDataPlaneOperations",
       "tableType": "Microsoft",
       "tableAPIState": "Any",
@@ -4327,6 +4333,12 @@
       "tableType": "Microsoft",
       "tableAPIState": "Any",
       "description": "Information about Microsoft 365-connected OAuth applications in the organization covered by Microsoft Cloud App Security."
+    },
+    {
+      "name": "ODSPFiles",
+      "tableType": "Microsoft",
+      "tableAPIState": "Any",
+      "description": "Asset inventory records for ODSPFiles."
     },
     {
       "name": "OEPAirFlowTask",
